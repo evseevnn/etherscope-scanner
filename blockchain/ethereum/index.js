@@ -1,0 +1,140 @@
+const log = require('debug')('blockchain:ethereum')
+const Web3 = require('web3')
+const commonABI = require('./abi.json')
+const EventEmitter = require('events')
+
+const REQUEST_INTERVAL = 1000 // every second
+
+class Ethereum extends EventEmitter {
+  constructor({ url } = { url: process.env.ETHEREUM_NODE_URL }) {
+    super()
+    this.web3 = new Web3(url)
+    this.tracingNewBlocks = false
+    this.lastBlockNumber = +process.env.LAST_BLOCK_NUMBER || 0
+  }
+
+  async traceNewBlocks(isOn = true) {
+    if (isOn) {
+      // Start tracing
+      this.tracingNewBlocks = true
+      this.web3.eth.getBlockNumber()
+          .then(blockNumber => {
+            if (this.lastBlockNumber < blockNumber) {
+              const lastLastBlockNumber = this.lastBlockNumber
+              this.lastBlockNumber = blockNumber
+              this.emit('blocks', { from: lastLastBlockNumber, to: blockNumber })
+            }
+            if (this.tracingNewBlocks) {
+              setTimeout(() => this.traceNewBlocks(), REQUEST_INTERVAL)
+            }
+          })
+          .catch(log)
+    } else {
+      this.tracingNewBlocks = false
+    }
+  }
+
+  /**
+   * Return object with block and block transactions data
+   * @param {Number} blockNumber
+   * @return {Promise<Object>}
+   */
+  async getBlockData(blockNumber) {
+    // Getting block and transactions data
+    const blockData = await this.web3.eth.getBlock(blockNumber, true)
+    const block = blockData
+    const transactions = Array.from(block.transactions)
+    const receipts = []
+    try {
+      if (transactions.length) {
+        // Getting operations data
+        const batch = new this.web3.BatchRequest()
+        transactions.forEach((transaction, index) => {
+          batch.add(this.web3.eth.getTransactionReceipt.request(transaction.hash, (error, data) => {
+            if (error) {
+              throw new Error(error)
+            }
+            receipts.push(data)
+          }))
+        })
+        batch.execute()
+      }
+    } catch (error) {
+      log(error.toString())
+      setTimeout(() => this.getBlockData(blockNumber), 1000)
+    }
+
+    // Wait for batch is finish
+    return new Promise((resolve, reject) => {
+      function wait() {
+        setImmediate(() => {
+          if (receipts.length < transactions.length) {
+            wait()
+          } else {
+            resolve({ block, transactions, receipts })
+          }
+        })
+      }
+
+      wait()
+    })
+  }
+
+  /**
+   * Return all balances of addresses
+   * @param {Array} addresses
+   * @return {Promise<Map>}
+   */
+  async getBalances(addresses) {
+    const addressesBalances = new Map()
+    // Getting operations data
+    const batch = new this.web3.BatchRequest()
+    addresses.forEach(address => {
+      batch.add(this.web3.eth.getBalance.request(address, (error, data) => {
+        if (error) {
+          throw new Error(error)
+        }
+        addressesBalances.set(address, data)
+      }))
+    })
+    batch.execute()
+
+    // Wait for batch is finish
+    return new Promise((resolve, reject) => {
+      function wait() {
+        setImmediate(() => {
+          if (addressesBalances.size < addresses.length) {
+            wait()
+          } else {
+            resolve(addressesBalances)
+          }
+        })
+      }
+
+      wait()
+    })
+  }
+
+  async getTokenData(contractAddress) {
+    // Check is it token
+    const contract = new this.web3.eth.Contract(commonABI, contractAddress)
+
+    // if contract has totalSupply that mean its token
+    try {
+      return {
+        address: contractAddress,
+        name: await contract.methods.name().call(),
+        decimals: await contract.methods.decimals().call(),
+        symbol: await contract.methods.symbol().call(),
+        totalSupply: await contract.methods.totalSupply().call(),
+        owner: await contract.methods.owner().call()
+      }
+    } catch (error) {
+      log(`getTokenData(${contractAddress}): ${error.toString()}`)
+      // if cannot decode that mean is not ERC20
+      return null
+    }
+  }
+}
+
+module.exports = Ethereum

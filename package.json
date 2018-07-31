@@ -1,0 +1,32 @@
+{
+  "name": "scanner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "Nikolay Evseev <evseevnn@gmail.com>",
+  "private": true,
+  "scripts": {
+    "update-schema": "node ./scripts/updateSchema",
+    "tracing": "node .",
+    "ethereum-blocks-listner": "cd ./blockchain/ethereum/listners && node blocks",
+    "ethereum-events-listner": "cd ./blockchain/ethereum/listners && node events"
+  },
+  "dependencies": {
+    "debug": "^3.1.0",
+    "dgraph-js": "^1.2.1",
+    "dotenv": "^6.0.0",
+    "grpc": "^1.13.0",
+    "nsqjs": "^0.10.1",
+    "web3": "^1.0.0-beta.34"
+  },
+  "devDependencies": {
+    "eslint": "^3.13.1",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-loader": "^1.9.0",
+    "eslint-plugin-html": "^2.0.3",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-node": "^4.2.2",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0"
+  }
+}

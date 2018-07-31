@@ -1,0 +1,75 @@
+version: '3.2'
+
+services:
+  zero:
+    image: dgraph/dgraph:latest
+    volumes:
+      - type: volume
+        source: dgraph
+        target: /dgraph
+        volume:
+          nocopy: true
+    ports:
+      - 5080:5080
+      - 6080:6080
+    restart: on-failure
+    command: dgraph zero --my=zero:5080
+  server:
+    image: dgraph/dgraph:latest
+    volumes:
+      - type: volume
+        source: dgraph
+        target: /dgraph
+        volume:
+          nocopy: true
+    ports:
+      - 8080:8080
+      - 9080:9080
+    restart: on-failure
+    command: dgraph server --my=server:7080 --lru_mb=2048 --zero=zero:5080
+  ratel:
+    image: dgraph/dgraph:latest
+    volumes:
+      - type: volume
+        source: dgraph
+        target: /dgraph
+        volume:
+          nocopy: true
+    ports:
+      - 8000:8000
+    command: dgraph-ratel
+
+  nsqlookup:
+    image: nsqio/nsq
+    hostname: nsqlookup
+    ports:
+      - "4160:4160"
+      - "4161:4161"
+    command: /nsqlookupd
+
+  nsq:
+    image: nsqio/nsq
+    hostname: nsq
+    ports:
+      - "4150:4150"
+      - "4151:4151"
+    links:
+      - nsqlookup:nsqlookup
+    command: /nsqd --broadcast-address nsq --lookupd-tcp-address=nsqlookup:4160
+
+  nsqadmin:
+    image: nsqio/nsq
+    hostname: nsqadmin
+    links:
+      - nsqlookup:nsqlookup
+    ports:
+      - "4171:4171"
+    command: /nsqadmin --lookupd-http-address=nsqlookup:4161
+
+volumes:
+  dgraph:
+    driver: local
+    driver_opts:
+      type: volume
+      o: bind
+      device: /dgraph:/dgraph
