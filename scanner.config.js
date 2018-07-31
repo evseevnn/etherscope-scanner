@@ -10,7 +10,8 @@ module.exports = {
     }
   },
   {
-    name: 'worker',
-    script: './nsq/worker.js'
+    name: 'blocks-listner',
+    script: './blockchain/ethereum/listeners/blocks.js',
+    instances: 2
   }]
 }
