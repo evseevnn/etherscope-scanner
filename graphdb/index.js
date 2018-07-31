@@ -3,7 +3,7 @@ const grpc = require('grpc')
 const Node = require('./models/Node')
 
 class Graph {
-  constructor({ address } = { address: 'localhost:9080' }) {
+  constructor({ address } = { address: process.env.GRAPHDB_ADDRESS || 'localhost:9080' }) {
     this.client = new dgraph.DgraphClient(
       new dgraph.DgraphClientStub(
         address,
