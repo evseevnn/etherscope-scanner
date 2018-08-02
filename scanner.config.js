@@ -13,7 +13,7 @@ module.exports = {
   {
     name: 'blocks-listner',
     script: './blockchain/ethereum/listeners/blocks.js',
-    instances: 2,
+    instances: 4,
     exec_mode: 'fork',
     autorestart: true
   }]
