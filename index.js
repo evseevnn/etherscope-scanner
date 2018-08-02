@@ -8,6 +8,10 @@ const ethereum = new Ethereum()
 
 const MAX_BLOCKS_PER_TASK = +process.env.MAX_BLOCKS_PER_TASK || 50
 
+setInterval(() => {
+  process.exit()
+}, 600000) // restart every 10 min
+
 // Start tracing ethereum network
 const blocksPool = new TasksPool(EthereumListners.NEW_BLOCKS_LISTNER)
 blocksPool
