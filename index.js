@@ -8,7 +8,7 @@ const ethereum = new Ethereum()
 
 const MAX_BLOCKS_PER_TASK = +process.env.MAX_BLOCKS_PER_TASK || 50
 
-setInterval(() => {
+setTimeout(() => {
   process.exit()
 }, 600000) // restart every 10 min
 
