@@ -74,7 +74,20 @@ class TasksPool {
           .on('error', (error) => log(error))
           .on('nsqd_connected', () => log('Task pool reader is ready'))
           .on('message', (msg) => {
-            callback(JSON.parse(msg.body.toString()), () => msg.finish())
+            const touch = () => {
+              if (!msg.hasResponded) {
+                msg.touch()
+
+                // Touch the message again a second before the next timeout.
+                setTimeout(touch, msg.timeUntilTimeout() - 1000)
+              }
+            }
+
+            setTimeout(touch, msg.timeUntilTimeout() - 1000)
+
+            callback(JSON.parse(msg.body.toString()), () => {
+              msg.finish()
+            })
           })
   }
 }
