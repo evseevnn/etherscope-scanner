@@ -31,6 +31,21 @@ new TasksPool(NEW_BLOCKS_LISTNER)
       promises.push(new Promise(async (resolve, reject) => {
         const blockNumber = current
         log(`[#${blockNumber}] Start processing block`)
+
+        // Check block number exist
+        const { blocks } = await graph.find(`
+          query blocks($number: int) {
+            blocks(func: eq(number, $number)) {
+              uid
+            }
+          }
+        `, { $number: blockNumber })
+
+        if (blocks.length) {
+          resolve()
+          return
+        }
+
         try {
           // Make block from block data
           const { block: blockData, transactions } = await ethereum.getBlockData(blockNumber)
@@ -64,15 +79,12 @@ new TasksPool(NEW_BLOCKS_LISTNER)
                 if (transaction.to) {
                   transaction.link('to', accountsRefference.get(transactionRaw.to), true)
                 }
+
                 // Collect logs
                 if (transactionRaw.logs) {
-                  transactionRaw.logs.forEach(log => {
-                    log = new Log(log)
-                    log.link('block', block)
-                    log.link('transaction', transaction)
-                    transaction.link('logs', log, true)
-                  })
+                  transactionRaw.logs.forEach(log => transaction.link('logs', new Log(log), true))
                 }
+
                 // Collect contracts
                 if (transaction.contractAddress) {
                   ethereum.getTokenData(transaction.contractAddress)
@@ -85,7 +97,6 @@ new TasksPool(NEW_BLOCKS_LISTNER)
                         contract = new Contract({ address: transaction.contractAddress })
                       }
                       transaction.link('contract', contract, true)
-
                       resolve(transaction)
                     })
                     .catch(reject)

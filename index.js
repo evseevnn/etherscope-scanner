@@ -8,10 +8,6 @@ const ethereum = new Ethereum()
 
 const MAX_BLOCKS_PER_TASK = +process.env.MAX_BLOCKS_PER_TASK || 50
 
-setTimeout(() => {
-  process.exit()
-}, 60000) // restart every 1 min
-
 // Start tracing ethereum network
 const blocksPool = new TasksPool(EthereumListners.NEW_BLOCKS_LISTNER)
 blocksPool
@@ -32,11 +28,11 @@ blocksPool
         }
         let cursor = +from
         for (let i = 1; i < amountOfChunks; i++) {
-          blocksPool.push({ from: cursor, to: (cursor + MAX_BLOCKS_PER_TASK - 1) })
+          blocksPool.send({ from: cursor, to: (cursor + MAX_BLOCKS_PER_TASK - 1) })
           cursor = cursor + MAX_BLOCKS_PER_TASK
         }
         if (restForLastChunk > 0) {
-          blocksPool.push({ from: cursor, to: (cursor + restForLastChunk) })
+          blocksPool.send({ from: cursor, to: (cursor + restForLastChunk) })
         }
 
         log(`Blocks ${from} -> ${to} send to processing`)

@@ -58,7 +58,7 @@ class TasksPool {
     })
   }
 
-  push(data) {
+  send(data) {
     nsqWriter.publish(this.name, data, (error) => {
       if (error) {
         log(error)

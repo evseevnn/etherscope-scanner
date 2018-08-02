@@ -13,25 +13,18 @@ class Ethereum extends EventEmitter {
     this.lastBlockNumber = +process.env.LAST_BLOCK_NUMBER || 0
   }
 
-  async traceNewBlocks(isOn = true) {
-    if (isOn) {
-      // Start tracing
-      this.tracingNewBlocks = true
-      this.web3.eth.getBlockNumber()
-          .then(blockNumber => {
-            if (this.lastBlockNumber < blockNumber) {
-              const lastLastBlockNumber = this.lastBlockNumber
-              this.lastBlockNumber = blockNumber
-              this.emit('blocks', { from: lastLastBlockNumber, to: blockNumber })
-            }
-            if (this.tracingNewBlocks) {
-              setTimeout(() => this.traceNewBlocks(), REQUEST_INTERVAL)
-            }
-          })
-          .catch(log)
-    } else {
-      this.tracingNewBlocks = false
-    }
+  async traceNewBlocks() {
+    // Start tracing
+    this.web3.eth.getBlockNumber()
+        .then(blockNumber => {
+          if (this.lastBlockNumber < blockNumber) {
+            const lastLastBlockNumber = this.lastBlockNumber
+            this.lastBlockNumber = blockNumber
+            this.emit('blocks', { from: lastLastBlockNumber, to: blockNumber })
+          }
+          setTimeout(() => this.traceNewBlocks(), REQUEST_INTERVAL)
+        })
+        .catch(log)
   }
 
   /**
