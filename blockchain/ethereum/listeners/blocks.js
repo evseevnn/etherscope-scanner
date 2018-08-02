@@ -77,7 +77,7 @@ new TasksPool(NEW_BLOCKS_LISTNER)
                 // Add transaction promise
                 const transaction = new Transaction(transactionRaw)
                 transaction.link('from', accountsRefference.get(transactionRaw.from), true)
-                if (transaction.to) {
+                if (transactionRaw.to) {
                   transaction.link('to', accountsRefference.get(transactionRaw.to), true)
                 }
 
