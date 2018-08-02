@@ -42,6 +42,7 @@ new TasksPool(NEW_BLOCKS_LISTNER)
         `, { $number: blockNumber })
 
         if (blocks.length) {
+          log(`[#${blockNumber}] exist`)
           resolve()
           return
         }
