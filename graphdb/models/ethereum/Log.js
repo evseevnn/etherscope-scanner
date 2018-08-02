@@ -5,7 +5,8 @@ class Log extends Node {
     return [
       'data',
       'topics',
-      'logIndex'
+      'logIndex',
+      'address'
     ]
   }
 
@@ -20,7 +21,7 @@ class Log extends Node {
       data: this.data,
       topics: this.topics,
       logIndex: this.logIndex,
-      address: this.address || null,
+      address: this.address,
       block: this.block || null,
       transaction: this.transaction || null
     }

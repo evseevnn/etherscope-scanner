@@ -14,7 +14,7 @@ class Contract extends Node {
       uid: this.uid,
       _type: this._type,
       address: this.address,
-      receipt: this.receipt || null
+      transaction: this.transaction || null
     }
   }
 }

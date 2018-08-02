@@ -10,7 +10,7 @@ const graph = new Graph()
 
 // Nodes
 const {
-  Account, Transaction, Receipt,
+  Account, Transaction,
   Block, Contract, ContractERC20, Log
 } = require('../../../graphdb/models').ethereum
 
@@ -33,14 +33,27 @@ new TasksPool(NEW_BLOCKS_LISTNER)
         log(`[#${blockNumber}] Start processing block`)
         try {
           // Make block from block data
-          const { block: blockData, transactions, receipts } = await ethereum.getBlockData(blockNumber)
+          const { block: blockData, transactions } = await ethereum.getBlockData(blockNumber)
           const block = new Block(blockData)
 
           const transactionsPromises = []
 
           if (transactions.length) {
             // Get transactions accounts
-            const accountsRefference = await getAccountsRefference(transactions)
+            const allAddressesOfBlock = [...new Set(
+              [].concat(...transactions.map(transaction => {
+                const result = []
+                if (transaction.from) {
+                  result.push(transaction.from)
+                }
+                if (transaction.to) {
+                  result.push(transaction.to)
+                }
+                return result
+              })
+            ))]
+
+            const accountsRefference = await getAccounts(allAddressesOfBlock)
 
             // Prepare transactions
             transactions.forEach(transactionRaw => {
@@ -51,43 +64,31 @@ new TasksPool(NEW_BLOCKS_LISTNER)
                 if (transaction.to) {
                   transaction.link('to', accountsRefference.get(transactionRaw.to), true)
                 }
-                let receiptRaw = receipts.find(receipt => receipt.transactionHash === transaction.hash)
-                if (receiptRaw) {
-                  resolve(new Promise((resolve, reject) => {
-                    const receipt = new Receipt(receiptRaw)
-                    receipt.link('block', block)
-                    receipt.link('transaction', transaction)
-                    if (receipt.contractAddress) {
-                      ethereum.getTokenData(receiptRaw.contractAddress)
-                        .then(erc20Data => {
-                          let contract
-                          if (erc20Data) {
-                            log(`[ERC20][${erc20Data.address}] ${erc20Data.name} (${erc20Data.symbol})`)
-                            contract = new ContractERC20(erc20Data)
-                          } else {
-                            contract = new Contract({ address: receiptRaw.contractAddress })
-                          }
-                          receipt.link('contract', contract, true)
-                          contract.link('receipt', receipt)
-                          if (receiptRaw.logs) {
-                            receiptRaw.logs.forEach(log => {
-                              log = new Log(log)
-                              log.link('address', contract)
-                              log.link('block', block)
-                              log.link('transaction', transaction)
-                              receipt.link('logs', log, true)
-                            })
-                          }
-                          transaction.link('receipt', receipt, true)
-                          resolve(transaction)
-                        })
-                        .catch(reject)
-                    } else {
-                      // add receipt to transaction
-                      transaction.link('receipt', receipt, true)
+                // Collect logs
+                if (transactionRaw.logs) {
+                  transactionRaw.logs.forEach(log => {
+                    log = new Log(log)
+                    log.link('block', block)
+                    log.link('transaction', transaction)
+                    transaction.link('logs', log, true)
+                  })
+                }
+                // Collect contracts
+                if (transaction.contractAddress) {
+                  ethereum.getTokenData(transaction.contractAddress)
+                    .then(erc20Data => {
+                      let contract
+                      if (erc20Data) {
+                        log(`[ERC20][${erc20Data.address}] ${erc20Data.name} (${erc20Data.symbol})`)
+                        contract = new ContractERC20(erc20Data)
+                      } else {
+                        contract = new Contract({ address: transaction.contractAddress })
+                      }
+                      transaction.link('contract', contract, true)
+
                       resolve(transaction)
-                    }
-                  }))
+                    })
+                    .catch(reject)
                 } else {
                   resolve(transaction)
                 }
@@ -119,11 +120,7 @@ new TasksPool(NEW_BLOCKS_LISTNER)
       .catch(log)
   })
 
-async function getAccountsRefference(transactions) {
-  const allAddressesOfBlock = [...new Set(
-    [].concat(...transactions.map(transaction => [transaction.from, transaction.to])
-  ).filter(address => !!address))]
-
+async function getAccounts(allAddressesOfBlock) {
   // Getting accounts what already in graph
   const { accounts: accountsInGraph } = await graph.find(`
     query accounts($addresses: array) {
@@ -134,21 +131,20 @@ async function getAccountsRefference(transactions) {
     }
   `, { $addresses: allAddressesOfBlock })
 
-  // Getting array of new accounts
-  const addressesOfNewAccounts = allAddressesOfBlock.filter(address => !accountsInGraph.find(account => account.address === address))
-
   // Getting balances of new accounts
-  const balancesForNewAccounts = await ethereum.getBalances(addressesOfNewAccounts)
+  const balancesForNewAccounts = await ethereum.getBalances(allAddressesOfBlock)
 
   // Generate accounts reference
   const accountsMap = new Map()
+
   // Add new accounts
   balancesForNewAccounts.forEach((balance, address) => {
-    accountsMap.set(address, new Account({ address, balance }))
-  })
-  // Add exists accounts
-  accountsInGraph.forEach(account => {
-    accountsMap.set(account.address, new Account({ uid: account.uid }))
+    const account = new Account({ address, balance })
+    const accountFromGraph = accountsInGraph.find(accountInGraph => accountInGraph.address === account.address)
+    if (accountFromGraph) {
+      account.uid = accountFromGraph.uid
+    }
+    accountsMap.set(address, account)
   })
 
   return accountsMap

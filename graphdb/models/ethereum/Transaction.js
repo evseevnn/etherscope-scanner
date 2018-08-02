@@ -9,7 +9,11 @@ class Transaction extends Node {
       'value',
       'gasPrice',
       'gas',
-      'input'
+      'input',
+      'status',
+      'contractAddress',
+      'cumulativeGasUsed',
+      'gasUsed'
     ]
   }
 
@@ -30,7 +34,13 @@ class Transaction extends Node {
       input: this.input,
       from: this.from || null,
       to: this.to || null,
-      receipt: this.receipt || null
+      // receipt fields
+      status: this.status || null,
+      contractAddress: this.contractAddress || null,
+      contract: this.contract || null,
+      cumulativeGasUsed: this.cumulativeGasUsed,
+      gasUsed: this.gasUsed,
+      logs: this.logs || null
     }
   }
 }

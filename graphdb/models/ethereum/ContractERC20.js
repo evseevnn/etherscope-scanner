@@ -21,7 +21,6 @@ class ContractERC20 extends Node {
       uid: this.uid,
       _type: this._type,
       address: this.address,
-      block: this.block || null,
       transaction: this.transaction || null,
       name: this.name,
       decimals: this.decimals,

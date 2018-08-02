@@ -44,7 +44,7 @@ class Ethereum extends EventEmitter {
     const blockData = await this.web3.eth.getBlock(blockNumber, true)
     const block = blockData
     const transactions = Array.from(block.transactions)
-    const receipts = []
+    let gottedReceipts = 0
     try {
       if (transactions.length) {
         // Getting operations data
@@ -54,7 +54,8 @@ class Ethereum extends EventEmitter {
             if (error) {
               throw new Error(error)
             }
-            receipts.push(data)
+            Object.assign(transactions[index], data || {})
+            gottedReceipts++
           }))
         })
         batch.execute()
@@ -68,10 +69,10 @@ class Ethereum extends EventEmitter {
     return new Promise((resolve, reject) => {
       function wait() {
         setImmediate(() => {
-          if (receipts.length < transactions.length) {
+          if (gottedReceipts < transactions.length) {
             wait()
           } else {
-            resolve({ block, transactions, receipts })
+            resolve({ block, transactions })
           }
         })
       }
