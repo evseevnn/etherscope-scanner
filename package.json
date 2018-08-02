@@ -6,7 +6,7 @@
   "author": "Nikolay Evseev <evseevnn@gmail.com>",
   "private": true,
   "scripts": {
-    "drop-db": "node ./scripts/drop-db",
+    "drop-db": "node ./scripts/dropDB",
     "update-schema": "node ./scripts/updateSchema",
     "tracing": "node .",
     "ethereum-blocks-listner": "cd ./blockchain/ethereum/listners && node blocks",

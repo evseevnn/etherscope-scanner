@@ -7,14 +7,20 @@ const graph = new Graph();
   await graph.setSchema(`
     _type: string @index(hash) .
     address: string @index(hash) .
-    number: string @index(hash) .
+    from.uid: uid @reverse .
+    to.uid: uid @reverse .
+    from.address: string @index(hash) @count .
+    to.address: string @index(hash) @count .
+    number: string @index(term) @upsert .
     sha3Uncles: string @index(hash) .
     miner: string @index(hash) .
     name: string @index(term) .
     symbol: string @index(hash) .
     owner: string @index(hash) .
     contractAddress: string @index(hash) .
-    hash: string @index(hash) .
+    contract.address: string @index(hash) @count .
+    transactions.hash: string @index(hash) @count .
+    hash: string @index(hash) @count .
   `)
 
   log(`Schema succeful apply`)
