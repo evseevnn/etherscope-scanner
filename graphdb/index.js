@@ -12,6 +12,12 @@ class Graph {
     )
   }
 
+  async setDropAll() {
+    const op = new dgraph.Operation()
+    op.setDropAll(true)
+    await this.client.alter(op)
+  }
+
   async setSchema(schema) {
     const op = new dgraph.Operation()
     op.setSchema(schema)
