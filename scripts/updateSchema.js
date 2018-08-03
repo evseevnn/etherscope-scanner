@@ -12,7 +12,6 @@ const graph = new Graph();
     to.uid: uid @reverse .
     to.address: string @index(hash) .
     transactions: uid reverse .
-    topics: [string] .
     number: int @index(int) @upsert .
     sha3Uncles: string @index(hash) .
     miner: string @index(hash) .
