@@ -6,11 +6,9 @@ const graph = new Graph();
 (async () => {
   await graph.setSchema(`
     _type: string @index(hash) .
-    address: string @index(hash) .
+    address: string @index(hash) @count .
     from.uid: uid @reverse .
     to.uid: uid @reverse .
-    from.address: string @index(hash) @count .
-    to.address: string @index(hash) @count .
     number: int @index(int) @upsert .
     sha3Uncles: string @index(hash) .
     miner: string @index(hash) .
@@ -18,9 +16,8 @@ const graph = new Graph();
     symbol: string @index(hash) .
     owner: string @index(hash) .
     contractAddress: string @index(hash) .
-    contract.address: string @index(hash) @count .
-    transactions.hash: string @index(hash) @count .
-    hash: string @index(hash) @count .
+    transactions.hash: string @index(hash) .
+    hash: string @index(hash) .
   `)
 
   log(`Schema succeful apply`)
