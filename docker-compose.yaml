@@ -55,7 +55,7 @@ services:
       - "4151:4151"
     links:
       - nsqlookup:nsqlookup
-    command: /nsqd --broadcast-address nsq --lookupd-tcp-address=nsqlookup:4160
+    command: /nsqd --broadcast-address nsq --lookupd-tcp-address=nsqlookup:4160 --msg-timeout=30m --max-msg-timeout=60m
 
   nsqadmin:
     image: nsqio/nsq
