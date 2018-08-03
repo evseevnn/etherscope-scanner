@@ -9,8 +9,8 @@
     "drop-db": "node ./scripts/dropDB",
     "update-schema": "node ./scripts/updateSchema",
     "tracing": "node .",
-    "ethereum-blocks-listner": "cd ./blockchain/ethereum/listners && node blocks",
-    "ethereum-events-listner": "cd ./blockchain/ethereum/listners && node events"
+    "ethereum-blocks-listner": "node ./blockchain/ethereum/listner/blocks",
+    "ethereum-events-listner": "node ./blockchain/ethereum/listners/events"
   },
   "dependencies": {
     "debug": "^3.1.0",

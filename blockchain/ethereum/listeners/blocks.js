@@ -8,7 +8,7 @@ const ethereum = new Ethereum()
 const Graph = require('../../../graphdb')
 const graph = new Graph()
 
-const BLOCKS_PER_TIME = 5
+const BLOCKS_PER_TIME = 1
 
 // Nodes
 const {
@@ -140,7 +140,7 @@ new TasksPool(NEW_BLOCKS_LISTNER)
       Promise.all(promises)
         .then(() => {
           if (from < to) {
-            process.nextTick(() => processing())
+            setImmediate(() => processing())
           } else {
             done()
           }
