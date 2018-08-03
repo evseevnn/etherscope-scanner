@@ -11,7 +11,7 @@ const graph = new Graph();
     to.uid: uid @reverse .
     from.address: string @index(hash) @count .
     to.address: string @index(hash) @count .
-    number: int @index(int) @upsert .
+    number: int @index(int) @upsert @count .
     sha3Uncles: string @index(hash) .
     miner: string @index(hash) .
     name: string @index(term) .
