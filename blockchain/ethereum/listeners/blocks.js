@@ -134,13 +134,13 @@ new TasksPool(NEW_BLOCKS_LISTNER)
           break
         }
         promises.push(saveBlock(from + i))
-        from = from + i
       }
+      from = from + BLOCKS_PER_TIME
 
       Promise.all(promises)
         .then(() => {
           if (from < to) {
-            processing()
+            setImmediate(() => processing())
           } else {
             done()
           }
