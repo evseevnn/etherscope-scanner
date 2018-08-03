@@ -69,6 +69,7 @@ class TasksPool {
   connectAsReader(callback) {
     nsqReader = new Reader(this.name, 'scanner', readerOptions)
     nsqReader.connect()
+    let touchTimeout
     nsqReader
           .on('discard', (error) => log(error))
           .on('error', (error) => log(error))
@@ -79,13 +80,14 @@ class TasksPool {
                 msg.touch()
 
                 // Touch the message again a second before the next timeout.
-                setTimeout(touch, msg.timeUntilTimeout() - 1000)
+                touchTimeout = setTimeout(touch, msg.timeUntilTimeout() - 1000)
               }
             }
 
-            setTimeout(touch, msg.timeUntilTimeout() - 1000)
+            touchTimeout = setTimeout(touch, msg.timeUntilTimeout() - 1000)
 
             callback(JSON.parse(msg.body.toString()), () => {
+              clearTimeout(touchTimeout)
               msg.finish()
             })
           })
