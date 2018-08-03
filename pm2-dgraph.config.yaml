@@ -1,7 +1,7 @@
 apps:
   - script: dgraph
     name: dgraph-server
-    args: server --lru_mb=8192 --my=206.189.13.173:7080 --zero=127.0.0.1:5080
+    args: server --lru_mb=8192 --zero=127.0.0.1:5080
     instances: 1
     exec_mode: fork
     interpreter: none

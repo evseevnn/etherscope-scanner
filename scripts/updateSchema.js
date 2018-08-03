@@ -5,21 +5,22 @@ const graph = new Graph();
 
 (async () => {
   await graph.setSchema(`
-    _type: string @index(hash) .
-    address: string @index(hash) .
-    from: uid @reverse .
-    to: uid @reverse .
+    _type: string @index(string) .
+    address: string @index(string) .
+    from.uid: uid @reverse .
+    from.address: string @index(string) .
+    to.uid: uid @reverse .
+    to.address: string @index(string) .
     transactions: uid reverse .
     topics: [string] .
     number: int @index(int) @upsert .
-    sha3Uncles: string @index(hash) .
-    miner: string @index(hash) .
+    sha3Uncles: string @index(string) .
+    miner: string @index(string) .
     name: string @index(term) .
-    symbol: string @index(hash) .
-    owner: string @index(hash) .
-    constract: uid @reverse .
-    contractAddress: string @index(hash) .
-    hash: string @index(hash) @count .
+    symbol: string @index(string) .
+    owner: string @index(string) .
+    contractAddress: string @index(string) .
+    hash: string @index(string) @count .
   `)
 
   log(`Schema succeful apply`)
