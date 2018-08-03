@@ -8,7 +8,7 @@ const ethereum = new Ethereum()
 const Graph = require('../../../graphdb')
 const graph = new Graph()
 
-const BLOCKS_PER_TIME = 1
+const BLOCKS_PER_TIME = 10
 
 // Nodes
 const {
