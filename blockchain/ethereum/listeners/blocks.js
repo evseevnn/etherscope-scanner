@@ -31,21 +31,6 @@ new TasksPool(NEW_BLOCKS_LISTNER)
       return new Promise(async (resolve, reject) => {
         log(`[#${blockNumber}] Start processing block`)
 
-        // Check block number exist
-        const { blocks } = await graph.find(`
-          query blocks($number: int) {
-            blocks(func: eq(number, $number)) {
-              uid
-            }
-          }
-        `, { $number: blockNumber })
-
-        if (blocks.length) {
-          log(`[#${blockNumber}] exist`)
-          resolve()
-          return
-        }
-
         try {
           // Make block from block data
           const { block: blockData, transactions } = await ethereum.getBlockData(blockNumber)
