@@ -8,6 +8,8 @@ const ethereum = new Ethereum()
 const Graph = require('../../../graphdb')
 const graph = new Graph()
 
+const BLOCKS_PER_TIME = 5
+
 // Nodes
 const {
   Account, Transaction,
@@ -25,11 +27,8 @@ async function eachPromises(promises, perTime = 10, result = []) {
 
 new TasksPool(NEW_BLOCKS_LISTNER)
   .connectAsReader(async ({ from, to }, done) => {
-    // Prepare promises
-    const promises = []
-    for (let current = from; current <= to; current++) {
-      promises.push(new Promise(async (resolve, reject) => {
-        const blockNumber = current
+    function saveBlock(blockNumber) {
+      return new Promise(async (resolve, reject) => {
         log(`[#${blockNumber}] Start processing block`)
 
         // Check block number exist
@@ -124,12 +123,32 @@ new TasksPool(NEW_BLOCKS_LISTNER)
           log(`[#${blockNumber}] processing error`)
           reject(error)
         }
-      }))
+      })
     }
 
-    eachPromises(promises, 10)
-      .then(() => done())
-      .catch(log)
+    function processing() {
+      // Prepare promises
+      const promises = []
+      for (let i = 0; i < BLOCKS_PER_TIME; i++) {
+        if (from + i > to) {
+          break
+        }
+        promises.push(saveBlock(from + i))
+        from = from + i
+      }
+
+      Promise.all(promises)
+        .then(() => {
+          if (from < to) {
+            setImmediate(() => processing())
+          } else {
+            done()
+          }
+        })
+        .catch(log)
+    }
+
+    processing()
   })
 
 async function getAccounts(allAddressesOfBlock) {
