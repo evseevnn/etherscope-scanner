@@ -6,7 +6,7 @@ const EthereumListners = require('./blockchain/ethereum/listeners')
 const TasksPool = require('./TasksPool')
 const ethereum = new Ethereum()
 
-const MAX_BLOCKS_PER_TIME = 100000
+const MAX_BLOCKS_PER_TIME = 10000
 
 // Start tracing ethereum network
 const blocksPool = new TasksPool(EthereumListners.NEW_BLOCKS_LISTNER)
@@ -14,6 +14,10 @@ blocksPool
   .connectAsWriter()
   .then(() => {
     log('Ethereum blocks listner started')
+
+    if (global.gc) {
+      setInterval(() => global.gc(), 5000)
+    }
 
     // Start tracing new blocks
     ethereum.traceNewBlocks()
