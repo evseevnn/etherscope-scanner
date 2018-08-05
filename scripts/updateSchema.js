@@ -5,6 +5,7 @@ const graph = new Graph();
 
 (async () => {
   await graph.setSchema(`
+    uid: uid @count .
     _type: string @index(hash) .
     address: string @index(hash) @count .
     from.uid: uid @reverse .
