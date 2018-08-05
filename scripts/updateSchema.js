@@ -7,7 +7,7 @@ const graph = new Graph();
   await graph.setSchema(`
     uid: uid @count .
     _type: string @index(hash) .
-    address: string @index(hash) @reverse .
+    address: string @index(hash) .
     from: uid @reverse .
     to: uid @reverse .
     number: int @index(int) @upsert .
@@ -18,6 +18,8 @@ const graph = new Graph();
     owner: string @index(hash) .
     contractAddress: string @index(hash) .
     transactions: uid @reverse .
+    contract: uid @reverse .
+    logs: uid @reverse .
     hash: string @index(hash) .
   `)
 
