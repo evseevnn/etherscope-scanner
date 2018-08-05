@@ -27,6 +27,7 @@ async function eachPromises(promises, perTime = 10, result = []) {
 
 new TasksPool(NEW_BLOCKS_LISTNER)
   .connectAsReader(async ({ from, to }, done) => {
+    log(`Start task ${from} -> ${to}`)
     function saveBlock(blockNumber) {
       return new Promise(async (resolve, reject) => {
         log(`[#${blockNumber}] Start processing block`)
@@ -125,8 +126,9 @@ new TasksPool(NEW_BLOCKS_LISTNER)
       Promise.all(promises)
         .then(() => {
           if (from < to) {
-            process.nextTick(processing)
+            setImmediate(processing)
           } else {
+            log(`End task ${from} -> ${to}`)
             done()
           }
         })
