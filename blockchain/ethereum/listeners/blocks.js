@@ -125,7 +125,7 @@ new TasksPool(NEW_BLOCKS_LISTNER)
       Promise.all(promises)
         .then(() => {
           if (from < to) {
-            process.nextTick(() => processing())
+            process.nextTick(processing)
           } else {
             done()
           }
