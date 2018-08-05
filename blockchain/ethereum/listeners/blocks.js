@@ -8,7 +8,7 @@ const ethereum = new Ethereum()
 const Graph = require('../../../graphdb')
 const graph = new Graph()
 
-const BLOCKS_PER_TIME = 10
+const BLOCKS_PER_TIME = 1
 
 // Nodes
 const {
@@ -100,9 +100,7 @@ new TasksPool(NEW_BLOCKS_LISTNER)
                 transactions.forEach(transaction => block.link('transactions', transaction, true))
               }
               // Save to graph
-              log(`[#${blockNumber}] Start insert to DB`)
               await graph.insert(block)
-              log(`[#${blockNumber}] End inserting to DB`)
 
               log(`[#${blockNumber}] Done (tx=${transactions.length})`)
               resolve()
@@ -131,11 +129,14 @@ new TasksPool(NEW_BLOCKS_LISTNER)
           if (from < to) {
             setImmediate(processing)
           } else {
-            log(`Enf task ${from} -> ${to}`)
+            log(`End task ${from} -> ${to}`)
             done()
           }
         })
-        .catch(log)
+        .catch((error) => {
+          log(error)
+          process.exit()
+        })
     }
 
     processing()

@@ -72,7 +72,10 @@ class TasksPool {
     let touchTimeout
     nsqReader
           .on('discard', (error) => log(error))
-          .on('error', (error) => log(error))
+          .on('error', (error) => {
+            log(error)
+            process.exit()
+          })
           .on('nsqd_connected', () => log('Task pool reader is ready'))
           .on('message', (msg) => {
             const touch = () => {
