@@ -11,7 +11,7 @@ const graph = new Graph()
 // Nodes
 const {
   Account, Transaction,
-  Block, Contract, ContractERC20, Log
+  Block, Contract, Log
 } = require('../../../graphdb/models').ethereum
 
 async function eachPromises(promises, perTime = 10, result = []) {
@@ -83,13 +83,10 @@ new TasksPool(NEW_BLOCKS_LISTNER)
             // Collect contracts
             if (transaction.contractAddress) {
               ethereum.getTokenData(transaction.contractAddress)
-                .then(erc20Data => {
-                  let contract
-                  if (erc20Data) {
-                    log(`[ERC20][${erc20Data.address}] ${erc20Data.name} (${erc20Data.symbol})`)
-                    contract = new ContractERC20(erc20Data)
-                  } else {
-                    contract = new Contract({ address: transaction.contractAddress })
+                .then(token => {
+                  const contract = new Contract(token || { address: transaction.contractAddress })
+                  if (token) {
+                    log(`[ERC20][${token.address}] ${token.name} (${token.symbol})`)
                   }
                   transaction.link('contract', contract, true)
                   resolve(transaction)

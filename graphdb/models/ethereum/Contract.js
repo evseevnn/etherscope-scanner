@@ -1,8 +1,15 @@
 const Node = require('../Node')
 
-class Contract extends Node {
+class ContractERC20 extends Node {
   get _fields() {
-    return [ 'address' ]
+    return [
+      'address',
+      'name',
+      'decimals',
+      'symbol',
+      'totalSupply',
+      'owner'
+    ]
   }
 
   get _type() {
@@ -14,9 +21,14 @@ class Contract extends Node {
       uid: this.uid,
       _type: this._type,
       address: this.address,
-      transaction: this.transaction || null
+      transaction: this.transaction || null,
+      name: this.name || null,
+      decimals: this.decimals || null,
+      symbol: this.symbol || null,
+      totalSupply: this.totalSupply || null,
+      owner: this.owner || null
     }
   }
 }
 
-module.exports = Contract
+module.exports = ContractERC20

@@ -7,9 +7,9 @@ const graph = new Graph();
   await graph.setSchema(`
     uid: uid @count .
     _type: string @index(hash) .
-    address: string @index(hash) @count .
-    from.uid: uid @reverse .
-    to.uid: uid @reverse .
+    address: string @index(hash) @reverse .
+    from: uid @reverse .
+    to: uid @reverse .
     number: int @index(int) @upsert .
     sha3Uncles: string @index(hash) .
     miner: string @index(hash) .
@@ -17,7 +17,7 @@ const graph = new Graph();
     symbol: string @index(hash) .
     owner: string @index(hash) .
     contractAddress: string @index(hash) .
-    transactions.hash: string @index(hash) .
+    transactions: uid @reverse .
     hash: string @index(hash) .
   `)
 
