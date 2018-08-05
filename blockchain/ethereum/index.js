@@ -20,7 +20,7 @@ class Ethereum extends EventEmitter {
           if (this.lastBlockNumber < blockNumber) {
             const lastLastBlockNumber = this.lastBlockNumber
             this.lastBlockNumber = blockNumber
-            this.emit('blocks', { from: lastLastBlockNumber, to: blockNumber })
+            setImmediate(() => this.emit('blocks', { from: lastLastBlockNumber, to: blockNumber }))
           }
           setTimeout(() => this.traceNewBlocks(), REQUEST_INTERVAL)
         })
