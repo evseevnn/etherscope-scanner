@@ -111,7 +111,7 @@ new TasksPool(NEW_BLOCKS_LISTNER)
       })
     }
 
-    const processing = function processing() {
+    const processing = function () {
       // Prepare promises
       const promises = []
       for (let i = 0; i < BLOCKS_PER_TIME; i++) {
