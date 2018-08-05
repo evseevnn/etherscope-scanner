@@ -29,12 +29,12 @@ new TasksPool(NEW_BLOCKS_LISTNER)
 
     // isBlockExist
     const { blockInGraph } = await graph.find(`
-      query blockInGraph($number: int) {
-        blockInGraph(func: eq(_type, "block")) @filter(eq(number, $number)) {
+      {
+        blockInGraph(func: eq(_type, "block")) @filter(eq(number, ${blockNumber})) {
           uid
         }
       }
-    `, { $number: blockNumber })
+    `)
     if (blockInGraph.length) {
       log(`[#${blockNumber}] Block exist`)
       done()
