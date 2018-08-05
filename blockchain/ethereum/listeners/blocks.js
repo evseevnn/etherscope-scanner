@@ -27,7 +27,7 @@ async function eachPromises(promises, perTime = 10, result = []) {
 
 new TasksPool(NEW_BLOCKS_LISTNER)
   .connectAsReader(async ({ from, to }, done) => {
-    log(`Start task ${from} -> ${to}`)
+    log(`Got task ${from} -> ${to}`)
     function saveBlock(blockNumber) {
       return new Promise(async (resolve, reject) => {
         log(`[#${blockNumber}] Start processing block`)
@@ -36,6 +36,8 @@ new TasksPool(NEW_BLOCKS_LISTNER)
           // Make block from block data
           const { block: blockData, transactions } = await ethereum.getBlockData(blockNumber)
           const block = new Block(blockData)
+
+          const transactionsPromises = []
 
           if (transactions.length) {
             // Get transactions accounts
@@ -56,52 +58,56 @@ new TasksPool(NEW_BLOCKS_LISTNER)
 
             // Prepare transactions
             transactions.forEach(transactionRaw => {
-              // Add transaction promise
-              const transaction = new Transaction(transactionRaw)
-              transaction.link('from', accountsRefference.get(transactionRaw.from), true)
-              if (transactionRaw.to) {
-                transaction.link('to', accountsRefference.get(transactionRaw.to), true)
-              }
+              transactionsPromises.push(new Promise((resolve, reject) => {
+                // Add transaction promise
+                const transaction = new Transaction(transactionRaw)
+                transaction.link('from', accountsRefference.get(transactionRaw.from), true)
+                if (transactionRaw.to) {
+                  transaction.link('to', accountsRefference.get(transactionRaw.to), true)
+                }
 
-              // Collect logs
-              if (transactionRaw.logs) {
-                transactionRaw.logs.forEach(log => transaction.link('logs', new Log(log), true))
-              }
+                // Collect logs
+                if (transactionRaw.logs) {
+                  transactionRaw.logs.forEach(log => transaction.link('logs', new Log(log), true))
+                }
 
-              // Collect contracts
-              if (transaction.contractAddress) {
-                ethereum.getTokenData(transaction.contractAddress)
-                  .then(erc20Data => {
-                    let contract
-                    if (erc20Data) {
-                      log(`[ERC20][${erc20Data.address}] ${erc20Data.name} (${erc20Data.symbol})`)
-                      contract = new ContractERC20(erc20Data)
-                    } else {
-                      contract = new Contract({ address: transaction.contractAddress })
-                    }
-                    transaction.link('contract', contract, true)
-                    block.link('transactions', transaction, true)
-                    // Save to graph
-                    graph.insert(block)
-                      .then(() => {
-                        resolve()
-                        log(`[#${blockNumber}] Done (tx=${transactions.length})`);
-                      })
-                      .catch(reject)
-                  })
-                  .catch(reject)
-              } else {
-                block.link('transactions', transaction, true)
-                // Save to graph
-                graph.insert(block)
-                  .then(() => {
-                    resolve()
-                    log(`[#${blockNumber}] Done (tx=${transactions.length})`);
-                  })
-                  .catch(reject)
-              }
+                // Collect contracts
+                if (transaction.contractAddress) {
+                  ethereum.getTokenData(transaction.contractAddress)
+                    .then(erc20Data => {
+                      let contract
+                      if (erc20Data) {
+                        log(`[ERC20][${erc20Data.address}] ${erc20Data.name} (${erc20Data.symbol})`)
+                        contract = new ContractERC20(erc20Data)
+                      } else {
+                        contract = new Contract({ address: transaction.contractAddress })
+                      }
+                      transaction.link('contract', contract, true)
+                      resolve(transaction)
+                    })
+                    .catch(reject)
+                } else {
+                  resolve(transaction)
+                }
+              }))
             })
           }
+
+          // resolve all promises of transactions
+          eachPromises(transactionsPromises, 1)
+            .then(async transactions => {
+              if (transactions.length) {
+                transactions.forEach(transaction => block.link('transactions', transaction, true))
+              }
+              // Save to graph
+              log(`[#${blockNumber}] Start insert to DB`)
+              await graph.insert(block)
+              log(`[#${blockNumber}] End inserting to DB`)
+
+              log(`[#${blockNumber}] Done (tx=${transactions.length})`)
+              resolve()
+            })
+            .catch(reject)
         } catch (error) {
           log(`[#${blockNumber}] processing error`)
           reject(error)
@@ -125,7 +131,7 @@ new TasksPool(NEW_BLOCKS_LISTNER)
           if (from < to) {
             setImmediate(processing)
           } else {
-            log(`End task ${from} -> ${to}`)
+            log(`Enf task ${from} -> ${to}`)
             done()
           }
         })
