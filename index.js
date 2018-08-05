@@ -17,11 +17,8 @@ blocksPool
     ethereum
       .on('blocks', ({ from, to }) => {
         for (let blockNumber = from; blockNumber < to; blockNumber++) {
-          setImmediate(blocksPool.send({ blockNumber }))
+          setImmediate(() => blocksPool.send({ blockNumber }))
         }
-
-        // cleaning
-        log(`Blocks ${from} -> ${to} send to processing`)
       })
   })
 

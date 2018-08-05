@@ -1,7 +1,6 @@
 apps:
   - script: index.js
     name: scanner
-    autorestart: true
     instances: 1
     exec_mode: fork
 
