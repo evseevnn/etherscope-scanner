@@ -115,7 +115,10 @@ new TasksPool(NEW_BLOCKS_LISTNER)
           log(`[#${blockNumber}] Done (tx=${transactions.length})`)
           done()
         })
-        .catch(log)
+        .catch((error) => {
+          log(`[#${blockNumber}] processing error`, error)
+          process.exit()
+        })
     } catch (error) {
       log(`[#${blockNumber}] processing error`, error)
       process.exit()
