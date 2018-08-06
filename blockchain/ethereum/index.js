@@ -1,6 +1,5 @@
 const log = require('debug')('blockchain:ethereum')
 const Web3 = require('web3')
-const commonABI = require('./abi.json')
 const EventEmitter = require('events')
 
 const REQUEST_INTERVAL = 1000 // every second
@@ -107,27 +106,6 @@ class Ethereum extends EventEmitter {
 
       wait()
     })
-  }
-
-  async getTokenData(contractAddress) {
-    // Check is it token
-    const contract = new this.web3.eth.Contract(commonABI, contractAddress)
-
-    // if contract has totalSupply that mean its token
-    try {
-      return {
-        address: contractAddress,
-        name: await contract.methods.name().call(),
-        decimals: await contract.methods.decimals().call(),
-        symbol: await contract.methods.symbol().call(),
-        totalSupply: await contract.methods.totalSupply().call(),
-        owner: await contract.methods.owner().call()
-      }
-    } catch (error) {
-      log(`getTokenData(${contractAddress}): ${error.toString()}`)
-      // if cannot decode that mean is not ERC20
-      return null
-    }
   }
 }
 

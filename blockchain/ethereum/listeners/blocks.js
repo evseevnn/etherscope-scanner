@@ -14,15 +14,6 @@ const {
   Block, Contract, Log
 } = require('../../../graphdb/models').ethereum
 
-async function eachPromises(promises, perTime = 10, result = []) {
-  const promisesForNow = promises.splice(0, perTime)
-  if (promisesForNow.length) {
-    const data = await Promise.all(promisesForNow)
-    return eachPromises(promises, perTime, result.concat(data))
-  }
-  return result
-}
-
 new TasksPool(NEW_BLOCKS_LISTNER)
   .connectAsReader(async ({ blockNumber }, done) => {
     log(`[#${blockNumber}] Start processing block`)
@@ -46,8 +37,6 @@ new TasksPool(NEW_BLOCKS_LISTNER)
       const { block: blockData, transactions } = await ethereum.getBlockData(blockNumber)
       const block = new Block(blockData)
 
-      const transactionsPromises = []
-
       if (transactions.length) {
         // Get transactions accounts
         const allAddressesOfBlock = [...new Set(
@@ -67,55 +56,32 @@ new TasksPool(NEW_BLOCKS_LISTNER)
 
         // Prepare transactions
         transactions.forEach(transactionRaw => {
-          transactionsPromises.push(new Promise((resolve, reject) => {
-            // Add transaction promise
-            const transaction = new Transaction(transactionRaw)
-            transaction.link('from', accountsRefference.get(transactionRaw.from), true)
-            if (transactionRaw.to) {
-              transaction.link('to', accountsRefference.get(transactionRaw.to), true)
-            }
+          // Add transaction promise
+          const transaction = new Transaction(transactionRaw)
+          transaction.link('from', accountsRefference.get(transactionRaw.from), true)
+          if (transactionRaw.to) {
+            transaction.link('to', accountsRefference.get(transactionRaw.to), true)
+          }
 
-            // Collect logs
-            if (transactionRaw.logs) {
-              transactionRaw.logs.forEach(log => transaction.link('logs', new Log(log), true))
-            }
+          // Collect logs
+          if (transactionRaw.logs) {
+            transactionRaw.logs.forEach(log => transaction.link('logs', new Log(log), true))
+          }
 
-            // Collect contracts
-            if (transaction.contractAddress) {
-              ethereum.getTokenData(transaction.contractAddress)
-                .then(token => {
-                  const contract = new Contract(token || { address: transaction.contractAddress })
-                  if (token) {
-                    log(`[ERC20][${token.address}] ${token.name} (${token.symbol})`)
-                  }
-                  transaction.link('contract', contract, true)
-                  resolve(transaction)
-                })
-                .catch(reject)
-            } else {
-              resolve(transaction)
-            }
-          }))
+          // Collect contracts
+          if (transaction.contractAddress) {
+            const contract = new Contract({ address: transaction.contractAddress })
+            transaction.link('contract', contract, true)
+          }
+          block.link('transactions', transaction, true)
         })
       }
 
-      // resolve all promises of transactions
-      eachPromises(transactionsPromises, 10)
-        .then(async transactions => {
-          if (transactions.length) {
-            transactions.forEach(transaction => block.link('transactions', transaction, true))
-          }
+      // Save to graph
+      await graph.insert(block)
 
-          // Save to graph
-          await graph.insert(block)
-
-          log(`[#${blockNumber}] Done (tx=${transactions.length})`)
-          done()
-        })
-        .catch((error) => {
-          log(`[#${blockNumber}] processing error`, error)
-          process.exit()
-        })
+      log(`[#${blockNumber}] Done (tx=${transactions.length})`)
+      done()
     } catch (error) {
       log(`[#${blockNumber}] processing error`, error)
       process.exit()
