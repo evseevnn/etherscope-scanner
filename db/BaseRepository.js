@@ -13,6 +13,10 @@ class BaseRepository {
     return []
   }
 
+  find(filter, fields) {
+    return this.collection.find(filter, fields)
+  }
+
   async insert(documents) {
     if (!Array.isArray(documents)) {
       documents = [documents]
