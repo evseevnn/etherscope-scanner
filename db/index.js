@@ -7,17 +7,9 @@ class DB {
   }
 
   async connect() {
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(this.address, (err, client) => {
-        if (err) {
-          reject(err)
-          process.exit()
-        }
-        log(`Connect to database successfully`)
-        this.client = client
-        resolve(client.db())
-      })
-    })
+    this.client = await MongoClient.connect(this.address, { useNewUrlParser: true })
+    log(`Connect to database successfully`)
+    return this.client.db()
   }
 }
 
