@@ -51,7 +51,7 @@ repositories
             if (allContractsAddressesOfBlock.length) {
               const balancesForNewContracts = await ethereum.getBalances(allContractsAddressesOfBlock)
               // Insert contracts
-              await AddressesRepository.upsert(Array.from(balancesForNewContracts.keys()).map(address => ({ address, balance: balancesForNewContracts.get(address), type: 'account' })))
+              await AddressesRepository.upsert(Array.from(balancesForNewContracts.keys()).map(address => ({ address, balance: balancesForNewContracts.get(address), type: 'contract' })))
             }
 
             // Save transactions
