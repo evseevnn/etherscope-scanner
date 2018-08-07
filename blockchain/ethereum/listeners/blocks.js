@@ -50,7 +50,7 @@ repositories
 
             const addressesForUpdate = allAccountsInTransactions.filter(address => !addressesInRepository.includes(address))
 
-            if (addressesForUpdate) {
+            if (addressesForUpdate.length) {
               // Getting balances for accounts
               const balancesForNewAccounts = await ethereum.getBalances(addressesForUpdate)
 
