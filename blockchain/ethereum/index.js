@@ -46,7 +46,7 @@ class Ethereum extends EventEmitter {
             if (error) {
               throw new Error(error)
             }
-            Object.assign(transactions[index], data || {})
+            transactions[index].receipt = data
             gottedReceipts++
           }))
         })
@@ -82,6 +82,7 @@ class Ethereum extends EventEmitter {
     const addressesBalances = new Map()
     // Getting operations data
     const batch = new this.web3.BatchRequest()
+
     addresses.forEach(address => {
       batch.add(this.web3.eth.getBalance.request(address, (error, data) => {
         if (error) {
