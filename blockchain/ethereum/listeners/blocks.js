@@ -46,20 +46,22 @@ repositories
 
             // Check addresses balances from db
             let addressesInRepository = await AddressesRepository.find({ address: { $in: allAccountsInTransactions }, lastUpdateAt: { $gt: block.timestamp } }, { address: 1 })
-            addressesInRepository = addressesInRepository.map(account => account.address)
+            addressesInRepository = (await addressesInRepository.toArray()).map(account => account.address)
 
             const addressesForUpdate = allAccountsInTransactions.filter(address => !addressesInRepository.includes(address))
 
-            // Getting balances for accounts
-            const balancesForNewAccounts = await ethereum.getBalances(addressesForUpdate)
+            if (addressesForUpdate) {
+              // Getting balances for accounts
+              const balancesForNewAccounts = await ethereum.getBalances(addressesForUpdate)
 
-            // Insert accounts
-            await AddressesRepository.upsert(allAddressesOfBlock.map(address => ({
-              address,
-              balance: balancesForNewAccounts.get(address),
-              type: allContractsAddressesOfBlock.includes(address) ? 'contract' : 'account',
-              lastUpdateAt: parseInt(Date.now() / 1000)
-            })))
+              // Insert accounts
+              await AddressesRepository.upsert(allAddressesOfBlock.map(address => ({
+                address,
+                balance: balancesForNewAccounts.get(address),
+                type: allContractsAddressesOfBlock.includes(address) ? 'contract' : 'account',
+                lastUpdateAt: parseInt(Date.now() / 1000)
+              })))
+            }
 
             // Save transactions
             await TransactionsRepository.insert(transactions)
