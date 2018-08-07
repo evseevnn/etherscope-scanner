@@ -37,22 +37,29 @@ repositories
               })
             ))]
 
-            // Getting balances of new accounts
-            const balancesForNewAccounts = await ethereum.getBalances(allAddressesOfBlock)
-
-            // Insert accounts
-            await AddressesRepository.upsert(Array.from(balancesForNewAccounts.keys()).map(address => ({ address, balance: balancesForNewAccounts.get(address), type: 'account' })))
-
             // Getting balances of contracts
             const allContractsAddressesOfBlock = transactions
               .filter(transaction => transaction.receipt.contractAddress)
               .map(transaction => transaction.receipt.contractAddress)
 
-            if (allContractsAddressesOfBlock.length) {
-              const balancesForNewContracts = await ethereum.getBalances(allContractsAddressesOfBlock)
-              // Insert contracts
-              await AddressesRepository.upsert(Array.from(balancesForNewContracts.keys()).map(address => ({ address, balance: balancesForNewContracts.get(address), type: 'contract' })))
-            }
+            const allAccountsInTransactions = [].concat(allAddressesOfBlock, allContractsAddressesOfBlock)
+
+            // Check addresses balances from db
+            let addressesInRepository = await AddressesRepository.find({ address: { $in: allAccountsInTransactions }, lastUpdateAt: { $gt: block.timestamp } }, { address: 1 })
+            addressesInRepository = addressesInRepository.map(account => account.address)
+
+            const addressesForUpdate = allAccountsInTransactions.filter(address => !addressesInRepository.includes(address))
+
+            // Getting balances for accounts
+            const balancesForNewAccounts = await ethereum.getBalances(addressesForUpdate)
+
+            // Insert accounts
+            await AddressesRepository.upsert(allAddressesOfBlock.map(address => ({
+              address,
+              balance: balancesForNewAccounts.get(address),
+              type: allContractsAddressesOfBlock.includes(address) ? 'contract' : 'account',
+              lastUpdateAt: parseInt(Date.now() / 1000)
+            })))
 
             // Save transactions
             await TransactionsRepository.insert(transactions)
