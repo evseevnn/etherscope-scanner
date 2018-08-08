@@ -55,7 +55,7 @@ repositories
               const balancesForNewAccounts = await ethereum.getBalances(addressesForUpdate)
 
               // Insert accounts
-              await AddressesRepository.upsert(allAddressesOfBlock.map(address => ({
+              await AddressesRepository.upsert(addressesForUpdate.map(address => ({
                 address,
                 balance: balancesForNewAccounts.get(address) || 0,
                 type: allContractsAddressesOfBlock.includes(address) ? 'contract' : 'account',
