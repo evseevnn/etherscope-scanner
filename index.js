@@ -24,7 +24,7 @@ repositories
       firstBlockNumber = parseInt(process.env.LAST_BLOCK_NUMBER)
     }
 
-    const ethereum = new Ethereum({ firstBlockNumber })
+    const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_URL, firstBlockNumber })
 
     // Start tracing ethereum network
     const blocksPool = new TasksPool(EthereumListners.NEW_BLOCKS_LISTNER)
