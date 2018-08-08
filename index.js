@@ -16,7 +16,7 @@ repositories
   }) => {
     let firstBlockNumber = 0
     if (process.env.LAST_BLOCK_NUMBER === 'latest') {
-      const [ lastBlock ] = (await BlocksReposiroty.find({}, { number: 1 }).sort({ number: -1 }).limit(1)).toArray()
+      const [ lastBlock ] = await BlocksReposiroty.find({}, { number: 1 }).sort({ number: -1 }).limit(1).toArray()
       if (lastBlock && lastBlock.number) {
         firstBlockNumber = lastBlock.number
       }
