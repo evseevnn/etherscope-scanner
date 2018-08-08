@@ -5,21 +5,21 @@ const EventEmitter = require('events')
 const REQUEST_INTERVAL = 1000 // every second
 
 class Ethereum extends EventEmitter {
-  constructor({ url } = { url: process.env.ETHEREUM_NODE_URL }) {
+  constructor({ url, firstBlockNumber } = { url: process.env.ETHEREUM_NODE_URL, firstBlockNumber: 0 }) {
     super()
     this.web3 = new Web3(url)
     this.tracingNewBlocks = false
-    this.lastBlockNumber = +process.env.LAST_BLOCK_NUMBER || 0
+    this.firstBlockNumber = firstBlockNumber
   }
 
   async traceNewBlocks() {
     // Start tracing
     this.web3.eth.getBlockNumber()
         .then(blockNumber => {
-          if (this.lastBlockNumber < blockNumber) {
-            const lastLastBlockNumber = this.lastBlockNumber
-            this.lastBlockNumber = blockNumber
-            setImmediate(() => this.emit('blocks', { from: lastLastBlockNumber, to: blockNumber }))
+          if (this.firstBlockNumber < blockNumber) {
+            const firstBlockNumber = this.firstBlockNumber
+            this.firstBlockNumber = blockNumber
+            setImmediate(() => this.emit('blocks', { from: firstBlockNumber, to: blockNumber }))
           }
           setTimeout(() => this.traceNewBlocks(), REQUEST_INTERVAL)
         })
