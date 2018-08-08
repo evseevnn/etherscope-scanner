@@ -57,7 +57,7 @@ repositories
               // Insert accounts
               await AddressesRepository.upsert(allAddressesOfBlock.map(address => ({
                 address,
-                balance: balancesForNewAccounts.get(address),
+                balance: balancesForNewAccounts.get(address) || 0,
                 type: allContractsAddressesOfBlock.includes(address) ? 'contract' : 'account',
                 lastUpdateAt: parseInt(Date.now() / 1000)
               })))
@@ -71,7 +71,7 @@ repositories
           await BlocksReposiroty.insert(block)
 
           log(`[#${blockNumber}] Done (tx=${transactions.length})`)
-          done()
+          setImmediate(() => done())
         } catch (error) {
           log(`[#${blockNumber}] processing error`, error)
           process.exit()

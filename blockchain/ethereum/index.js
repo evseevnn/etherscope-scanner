@@ -54,19 +54,19 @@ class Ethereum extends EventEmitter {
       }
     } catch (error) {
       log(error.toString())
-      setTimeout(() => this.getBlockData(blockNumber), 1000)
+      return new Promise((resolve, reject) => {
+        setTimeout(() => resolve(this.getBlockData(blockNumber)), 1000)
+      })
     }
 
     // Wait for batch is finish
     return new Promise((resolve, reject) => {
       function wait() {
-        setImmediate(() => {
-          if (gottedReceipts < transactions.length) {
-            wait()
-          } else {
-            resolve({ block, transactions })
-          }
-        })
+        if (gottedReceipts < transactions.length) {
+          setImmediate(() => wait())
+        } else {
+          resolve({ block, transactions })
+        }
       }
 
       wait()
