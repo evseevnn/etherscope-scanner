@@ -36,6 +36,7 @@ class BaseRepository {
           filter[field] = document[field]
         }
       })
+      delete document._id
       return {
         updateOne: {
           filter,
