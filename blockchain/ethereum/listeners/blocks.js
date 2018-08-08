@@ -65,6 +65,8 @@ repositories
 
             // Save transactions
             await TransactionsRepository.insert(transactions)
+            // Replace transaction object on trnsaction hash in block
+            block.transactions = block.transactions.map(transaction => transaction.hash)
           }
 
           // Save block at last
