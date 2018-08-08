@@ -5,7 +5,7 @@ const EventEmitter = require('events')
 const REQUEST_INTERVAL = 1000 // every second
 
 class Ethereum extends EventEmitter {
-  constructor({ url, firstBlockNumber } = { url: 'ws://localhost:8546', firstBlockNumber: 0 }) {
+  constructor({ url = 'ws://localhost:8546', firstBlockNumber = 0 } = {}) {
     super()
     this.web3 = new Web3(url)
     this.tracingNewBlocks = false
