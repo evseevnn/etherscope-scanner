@@ -3,7 +3,7 @@ const log = require('debug')('blockchain:ethereum:listners:blocks')
 const TasksPool = require('../../../TasksPool')
 const { NEW_BLOCKS_LISTNER } = require('.')
 const Ethereum = require('../')
-const ethereum = new Ethereum()
+const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_URL })
 
 const repositories = require('../../../db/repositories')
 
