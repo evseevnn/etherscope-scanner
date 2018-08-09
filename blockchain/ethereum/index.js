@@ -82,7 +82,7 @@ class Ethereum extends EventEmitter {
     const addressesBalances = new Map()
     // Getting operations data
     const batch = new this.web3.BatchRequest()
-
+    addresses = Array.from(new Set(addresses))
     addresses.forEach(address => {
       batch.add(this.web3.eth.getBalance.request(address, (error, data) => {
         if (error) {
