@@ -38,6 +38,7 @@ repositories
           // Need save data
           if (addresses.size) {
             log(`[#${transaction.blockNumber}] Trying save ${addresses.size} addresses`)
+            console.log(Array.from(addresses.values()))
             await AddressesRepository.insert(Array.from(addresses.values()))
             addresses.clear()
           }
