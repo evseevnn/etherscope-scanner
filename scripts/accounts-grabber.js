@@ -25,7 +25,6 @@ repositories
         log(`[#${transaction.blockNumber}] Getting addresses from block`)
         // Need save it one time per block
         if (lastProcessedBlock < transaction.blockNumber) {
-          log(`[${lastProcessedBlock}] Saving all addresses from block`)
           const allAccountsAddresses = Array.from(addresses.keys())
 
           // Get accounts from database for exclude from next ethereum request and saving to db
@@ -37,17 +36,18 @@ repositories
           })
 
           // Need save data
-          const forSave = Array.from(addresses.values())
-          log(`[#${transaction.blockNumber}] Trying save ${forSave.length} addresses`)
-          await AddressesRepository.insert(forSave)
+          if (addresses.size) {
+            log(`[#${transaction.blockNumber}] Trying save ${addresses.size} addresses`)
+            await AddressesRepository.insert(Array.from(addresses.values()))
+            addresses.clear()
+          }
           lastProcessedBlock = transaction.blockNumber
-          addresses.clear()
           log(`[${lastProcessedBlock}] Saved`)
         }
 
         // Collect addresses from transaction
         if (transaction.from) {
-          addresses.push(transaction.from, {
+          addresses.set(transaction.from, {
             address: transaction.from,
             type: AddressesRepository.ADDRESS_TYPE_ACCOUNT,
             lastUpdateAt: parseInt(Date.now() / 1000)
@@ -55,7 +55,7 @@ repositories
         }
 
         if (transaction.to) {
-          addresses.push(transaction.to, {
+          addresses.set(transaction.to, {
             address: transaction.to,
             type: AddressesRepository.ADDRESS_TYPE_ACCOUNT,
             lastUpdateAt: parseInt(Date.now() / 1000)
