@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "tracing": "node .",
+    "account-grabber": "node ./scripts/accounts-grabber.js",
     "ethereum-blocks-listner": "node ./blockchain/ethereum/listner/blocks",
     "ethereum-events-listner": "node ./blockchain/ethereum/listners/events"
   },
