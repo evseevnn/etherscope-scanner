@@ -35,7 +35,7 @@ repositories
           })
 
           // Need save data
-          const addressesData = Object.values(addresses.values())
+          const addressesData = Object.values(addresses)
           if (addressesData.length) {
             log(`[#${transaction.blockNumber}] Trying save ${addressesData.length} addresses`)
             await AddressesRepository.insert(addressesData)
