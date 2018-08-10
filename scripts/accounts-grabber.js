@@ -17,7 +17,7 @@ repositories
     let addresses = new Map()
     await TransactionsRepository
       .find()
-      .sort({ blockNumber: 1, transactionIndex: 1 })
+      .sort({ blockNumber: 1 })
       .forEach(async transaction => {
         // Need save it one time per block
         if (lastProcessedBlock < transaction.blockNumber) {
