@@ -27,17 +27,18 @@ repositories
         if (lastProcessedBlock < transaction.blockNumber) {
           const allAccountsAddresses = Array.from(addresses.keys())
 
+          console.log('before: ', addresses)
           // Get accounts from database for exclude from next ethereum request and saving to db
           const accountsFromDatabase = await AddressesRepository.find({ address: { $in: allAccountsAddresses } }, { address: 1 }).toArray()
           // Clean saving batch
           accountsFromDatabase.forEach(account => {
             addresses.delete(account.address)
           })
-
+          console.log('after: ', addresses)
+          console.log('as array: ', Array.from(addresses.values()))
           // Need save data
           if (addresses.size) {
             log(`[#${transaction.blockNumber}] Trying save ${addresses.size} addresses`)
-            console.log(Array.from(addresses.values()))
             await AddressesRepository.insert(Array.from(addresses.values()))
             addresses.clear()
           }
