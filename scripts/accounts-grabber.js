@@ -14,7 +14,7 @@ repositories
   }) => {
     let lastProcessedBlock = 0
     // Getting all creation contracts
-    let addresses = {}
+    let addressesForSave = {}
     await TransactionsRepository
       .find()
       .sort({ blockNumber: 1 })
@@ -25,21 +25,21 @@ repositories
         log(`[#${transaction.blockNumber}] Getting addresses from block`)
         // Need save it one time per block
         if (lastProcessedBlock < transaction.blockNumber) {
-          const allAccountsAddresses = Object.keys(addresses)
+          const allAccountsAddresses = Object.keys(addressesForSave)
 
           // Get accounts from database for exclude from next ethereum request and saving to db
           const accountsFromDatabase = await AddressesRepository.find({ address: { $in: allAccountsAddresses } }, { address: 1 }).toArray()
           // Clean saving batch
           accountsFromDatabase.forEach(account => {
-            delete addresses[account.address]
+            delete addressesForSave[account.address]
           })
 
           // Need save data
-          const addressesData = Object.values(addresses)
+          const addressesData = Object.values(addressesForSave)
           if (addressesData.length) {
             log(`[#${transaction.blockNumber}] Trying save ${addressesData.length} addresses`)
             await AddressesRepository.insert(addressesData)
-            addresses = {}
+            addressesForSave = {}
           }
           lastProcessedBlock = transaction.blockNumber
           log(`[${lastProcessedBlock}] Saved`)
@@ -47,7 +47,7 @@ repositories
 
         // Collect addresses from transaction
         if (transaction.from) {
-          addresses[transaction.from] = {
+          addressesForSave[transaction.from] = {
             address: transaction.from,
             type: AddressesRepository.ADDRESS_TYPE_ACCOUNT,
             lastUpdateAt: parseInt(Date.now() / 1000)
@@ -55,7 +55,7 @@ repositories
         }
 
         if (transaction.to) {
-          addresses[transaction.to] = {
+          addressesForSave[transaction.to] = {
             address: transaction.to,
             type: AddressesRepository.ADDRESS_TYPE_ACCOUNT,
             lastUpdateAt: parseInt(Date.now() / 1000)
@@ -64,7 +64,7 @@ repositories
 
         // if transaction has contract creation
         if (transaction.receipt.contractAddress) {
-          addresses[transaction.receipt.contractAddress] = {
+          addressesForSave[transaction.receipt.contractAddress] = {
             address: transaction.receipt.contractAddress,
             type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
             lastUpdateAt: parseInt(Date.now() / 1000)
