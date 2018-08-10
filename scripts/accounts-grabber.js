@@ -14,14 +14,18 @@ repositories
   }) => {
     let lastProcessedBlock = 0
     // Getting all creation contracts
-    let addresses = new Map()
+    const addresses = new Map()
     await TransactionsRepository
       .find()
       .sort({ blockNumber: 1 })
       .forEach(async transaction => {
+        if (lastProcessedBlock === 0) {
+          lastProcessedBlock = transaction.blockNumber
+        }
+        log(`[#${transaction.blockNumber}] Getting addresses from block`)
         // Need save it one time per block
         if (lastProcessedBlock < transaction.blockNumber) {
-          log(`[${lastProcessedBlock}] Save all addresses from block`)
+          log(`[${lastProcessedBlock}] Saving all addresses from block`)
           const allAccountsAddresses = Array.from(addresses.keys())
 
           // Get accounts from database for exclude from next ethereum request and saving to db
@@ -33,9 +37,12 @@ repositories
           })
 
           // Need save data
-          await AddressesRepository.insert(Array.from(addresses.values()))
+          const forSave = Array.from(addresses.values())
+          log(`[#${transaction.blockNumber}] Trying save ${forSave.length} addresses`)
+          await AddressesRepository.insert(forSave)
           lastProcessedBlock = transaction.blockNumber
           addresses.clear()
+          log(`[${lastProcessedBlock}] Saved`)
         }
 
         // Collect addresses from transaction
