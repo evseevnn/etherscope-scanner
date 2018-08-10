@@ -29,7 +29,6 @@ repositories
 
           // Get accounts from database for exclude from next ethereum request and saving to db
           const accountsFromDatabase = await AddressesRepository.find({ address: { $in: allAccountsAddresses } }, { address: 1 }).toArray()
-          console.log(allAccountsAddresses, accountsFromDatabase)
           // Clean saving batch
           accountsFromDatabase.forEach(account => {
             addresses.delete(account.address)
