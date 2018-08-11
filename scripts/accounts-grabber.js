@@ -31,7 +31,7 @@ repositories
         const accountsFromDatabase = await AddressesRepository.find({ address: { $in: addressesForSave } }, { address: 1 }).toArray()
 
         accountsFromDatabase.forEach(account => {
-          const index = addressesForSave.findIndex(account.address)
+          const index = addressesForSave.findIndex(address => account.address === address)
           if (index >= 0) {
             addressesForSave.splice(index, 1)
           }
