@@ -6,7 +6,7 @@ require('dotenv').load()
 const log = require('debug')('accounts-grabber')
 const repositories = require('../db/repositories')
 
-const TRANSACTIONS_PER_TIME = 1000
+const TRANSACTIONS_PER_TIME = 100000
 
 repositories
   .connect()
