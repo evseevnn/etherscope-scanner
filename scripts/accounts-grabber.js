@@ -6,70 +6,54 @@ require('dotenv').load()
 const log = require('debug')('accounts-grabber')
 const repositories = require('../db/repositories')
 
+const TRANSACTIONS_PER_TIME = 1000
+
 repositories
   .connect()
   .then(async ({
     AddressesRepository,
     TransactionsRepository
   }) => {
-    let lastProcessedBlock = 0
-    // Getting all creation contracts
-    let addressesForSave = {}
-    await TransactionsRepository
-      .find()
-      .sort({ blockNumber: 1 })
-      .forEach(async transaction => {
-        if (lastProcessedBlock === 0) {
-          lastProcessedBlock = transaction.blockNumber
-        }
-        log(`[#${transaction.blockNumber}] Getting addresses from block`)
-        // Need save it one time per block
-        if (lastProcessedBlock < transaction.blockNumber) {
-          const allAccountsAddresses = Object.keys(addressesForSave)
+    async function getNextTransactionsAddresses(lastId = null) {
+      let search = {}
+      if (lastId) {
+        search = { $gt: lastId }
+      }
+      const transactions = await TransactionsRepository.find(search).sort({ blockNumber: 1 }).limit(TRANSACTIONS_PER_TIME).toArray()
+      if (transactions.length) {
+        // Get contracts
+        const contracts = transactions.map(transaction => transaction.receipt.contractAddress)
+        // Get accounts
+        const accounts = [].concat(...transactions.map(transaction => [transaction.from, transaction.to]))
 
-          // Get accounts from database for exclude from next ethereum request and saving to db
-          const accountsFromDatabase = await AddressesRepository.find({ address: { $in: allAccountsAddresses } }, { address: 1 }).toArray()
-          // Clean saving batch
-          accountsFromDatabase.forEach(account => {
-            delete addressesForSave[account.address]
-          })
+        const addressesForSave = Array.from(new Set([...contracts, ...accounts]))
+        // Checing in db
+        const accountsFromDatabase = await AddressesRepository.find({ address: { $in: addressesForSave } }, { address: 1 }).toArray()
 
-          // Need save data
-          const addressesData = Object.values(addressesForSave)
-          if (addressesData.length) {
-            log(`[#${transaction.blockNumber}] Trying save ${addressesData.length} addresses`)
-            await AddressesRepository.insert(addressesData)
-            addressesForSave = {}
+        accountsFromDatabase.forEach(account => {
+          const index = addressesForSave.findIndex(account.address)
+          if (index >= 0) {
+            addressesForSave.splice(index, 1)
           }
-          lastProcessedBlock = transaction.blockNumber
-          log(`[${lastProcessedBlock}] Saved`)
+        })
+
+        if (addressesForSave.length) {
+          await AddressesRepository.insert(
+            addressesForSave.map(address => {
+              return {
+                address,
+                type: contracts.includes(address) ? AddressesRepository.ADDRESS_TYPE_CONTRACT : AddressesRepository.ADDRESS_TYPE_ACCOUNT,
+                lastUpdateAt: parseInt(Date.now() / 1000)
+              }
+            })
+          )
+          log(`Saved ${addressesForSave.length} addresses`)
         }
 
-        // Collect addresses from transaction
-        if (transaction.from) {
-          addressesForSave[transaction.from] = {
-            address: transaction.from,
-            type: AddressesRepository.ADDRESS_TYPE_ACCOUNT,
-            lastUpdateAt: parseInt(Date.now() / 1000)
-          }
-        }
-
-        if (transaction.to) {
-          addressesForSave[transaction.to] = {
-            address: transaction.to,
-            type: AddressesRepository.ADDRESS_TYPE_ACCOUNT,
-            lastUpdateAt: parseInt(Date.now() / 1000)
-          }
-        }
-
-        // if transaction has contract creation
-        if (transaction.receipt.contractAddress) {
-          addressesForSave[transaction.receipt.contractAddress] = {
-            address: transaction.receipt.contractAddress,
-            type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
-            lastUpdateAt: parseInt(Date.now() / 1000)
-          }
-        }
-      })
+        // Getting next part
+        // getNextTransactionsAddresses(transactions[transactions.length - 1]._id)
+      }
+    }
+    getNextTransactionsAddresses()
   })
   .catch(log)
