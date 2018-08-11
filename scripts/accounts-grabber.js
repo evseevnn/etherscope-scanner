@@ -17,7 +17,7 @@ repositories
     async function getNextTransactionsAddresses(lastId = null) {
       let search = {}
       if (lastId) {
-        search = { $gt: lastId }
+        search = { _id: { $gt: lastId } }
       }
       const transactions = await TransactionsRepository.find(search).sort({ blockNumber: 1 }).limit(TRANSACTIONS_PER_TIME).toArray()
       if (transactions.length) {
