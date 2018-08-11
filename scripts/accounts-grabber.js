@@ -52,6 +52,9 @@ repositories
 
         // Getting next part
         setImmediate(getNextTransactionsAddresses(transactions[transactions.length - 1]._id))
+      } else {
+        log(`Finish`)
+        process.exit()
       }
     }
     getNextTransactionsAddresses()
