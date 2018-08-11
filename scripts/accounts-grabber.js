@@ -51,7 +51,7 @@ repositories
         }
 
         // Getting next part
-        // getNextTransactionsAddresses(transactions[transactions.length - 1]._id)
+        setImmediate(getNextTransactionsAddresses(transactions[transactions.length - 1]._id))
       }
     }
     getNextTransactionsAddresses()
