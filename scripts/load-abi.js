@@ -1,8 +1,5 @@
 require('dotenv').load()
 const log = require('debug')('scripts:load-abi')
-const schedule = require('node-schedule')
-const RateLimiter = require('limiter').RateLimiter
-const limiter = new RateLimiter(5, 'second')
 const etherscanAPI = require('etherscan-api').init(process.env.ETHERSCAN_API_KEY)
 const repositories = require('../db/repositories')
 const web3 = require('web3')
@@ -41,41 +38,49 @@ async function getABIData(address, abi) {
 repositories
   .connect()
   .then(async ({ AddressesRepository }) => {
-    // periodicaly asinkg about abi and load it
-    // schedule.scheduleJob('* 41 * * * *', async () => {
-      // Get contracts addresses without abi
+    // Get contracts addresses without abi
     const contracts = await AddressesRepository.find({ type: AddressesRepository.ADDRESS_TYPE_CONTRACT, abi: { $exists: false } })
-    limiter.removeTokens(1, async () => {
-      contracts.next(async (error, contract) => {
-        if (error) {
-          throw new Error(error)
-        }
-        if (contract) {
-          // trying get abi
-          log(`[${contract.address}] Trying get ABI`)
-          try {
-            const { result: abi } = await etherscanAPI.contract.getabi(contract.address)
-            // save to database
-            if (abi) {
-              contract.abi = abi
-              try {
-                const abiData = await getABIData(JSON.parse(abi))
-                Object.assign(contract, abiData)
-              } catch (e) {
-                log(`[${contract.address}] Broken ABI`, e)
-                return
-              }
-              await AddressesRepository.upsert(contract)
-              log(`[${contract.address}] ABI Saved`)
-            } else {
-              log(`[${contract.address}] ABI Not Found`)
-            }
-          } catch (error) {
-            log(`[${contract.address}] ABI Not Found`)
+    async function processing() {
+      setTimeout(() => {
+        contracts.next(async (error, contract) => {
+          if (error) {
+            throw new Error(error)
           }
-        }
-      })
-    })
-    // })
+          if (contract) {
+            // trying get abi
+            log(`[${contract.address}] Trying get ABI`)
+            try {
+              const { result: abi } = await etherscanAPI.contract.getabi(contract.address)
+              // save to database
+              if (abi) {
+                contract.abi = abi
+                try {
+                  const abiData = await getABIData(JSON.parse(abi))
+                  Object.assign(contract, abiData)
+                } catch (e) {
+                  log(`[${contract.address}] Broken ABI`, e)
+                  processing()
+                  return
+                }
+                await AddressesRepository.upsert(contract)
+                log(`[${contract.address}] ABI Saved`)
+                processing()
+              } else {
+                log(`[${contract.address}] ABI Not Found`)
+                processing()
+              }
+            } catch (error) {
+              log(`[${contract.address}] ABI Not Found`)
+              processing()
+            }
+          } else {
+            log('Finish')
+            process.exit()
+          }
+        })
+      }, 250)
+    }
+
+    processing()
   })
   .catch(log)
