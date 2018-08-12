@@ -22,7 +22,8 @@ async function getABIData(address, abi) {
             .then(value => (abiData.constants[abiMethod.name] = value))
             .then(resolve)
             .catch(error => {
-              log(`Method ${abiMethod.name} error`, error)
+              log(`Method ${abiMethod.name} error`)
+              reject(error)
             })
         } else {
           const method = `${abiMethod.name}(${abiMethod.inputs.map(input => input.type).join(',')})`
