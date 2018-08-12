@@ -21,7 +21,9 @@ async function getABIData(address, abi) {
           contract.methods[abiMethod.name]().call()
             .then(value => (abiData.constants[abiMethod.name] = value))
             .then(resolve)
-            .catch(reject)
+            .catch(error => {
+              log(`Method ${abiMethod.name} error`, error)
+            })
         } else {
           const method = `${abiMethod.name}(${abiMethod.inputs.map(input => input.type).join(',')})`
           abiData.methods[abiMethod.signature] = method
