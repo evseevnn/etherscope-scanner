@@ -13,6 +13,7 @@ async function getABIData(address, abi) {
 
   // Prepare abi output for broken contracts data
   abi = abi.map(abiMethod => {
+    console.log(abiMethod.outputs)
     return Object.assign(abiMethod, {
       outputs: abiMethod.outputs.map(item => {
         let defaultValue
