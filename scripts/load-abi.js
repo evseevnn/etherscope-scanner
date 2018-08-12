@@ -62,7 +62,7 @@ async function getABIData(address, abi) {
             .then(resolve)
             .catch(error => {
               log(`[${address}] ABI is not correct`)
-              reject(error)
+              reject(error.toString())
             })
         } else {
           const method = `${abiMethod.name}(${abiMethod.inputs.map(input => input.type).join(',')})`
@@ -83,7 +83,7 @@ repositories
   .connect()
   .then(async ({ AddressesRepository }) => {
     // Get contracts addresses without abi
-    const contracts = await AddressesRepository.find({ type: AddressesRepository.ADDRESS_TYPE_CONTRACT, abi: { $exists: false } })
+    const contracts = await AddressesRepository.find({ type: AddressesRepository.ADDRESS_TYPE_CONTRACT, abi: { $exists: false } }).noCursorTimeout()
     async function processing() {
       setTimeout(() => {
         contracts.next(async (error, contract) => {
