@@ -2,14 +2,15 @@ require('dotenv').load()
 const log = require('debug')('scripts:load-abi')
 const etherscanAPI = require('etherscan-api').init(process.env.ETHERSCAN_API_KEY)
 const repositories = require('../db/repositories')
-const web3 = require('web3')
+const Ethereum = require('../blockchain/ethereum')
+const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_URL })
 
 async function getABIData(address, abi) {
   if (!Array.isArray(abi)) {
     log('ABI: ', abi)
     throw new Error(`Cannot read abi data`)
   }
-  const contract = new web3.eth.contract(address, abi)
+  const contract = new ethereum.web3.eth.contract(address, abi)
   const abiData = { constants: {}, methods: {}, payableMethods: [] }
   const promises = []
   abi.forEach(abiMethod => {
@@ -22,7 +23,7 @@ async function getABIData(address, abi) {
           .catch(error => log(error))
         } else {
           const method = `${abiMethod.name}(${abiMethod.inputs.map(input => input.type).join(',')})`
-          const methodId = web3.utils.sha3(method).substr(0, 10)
+          const methodId = ethereum.web3.utils.sha3(method).substr(0, 10)
           abiData.methods[methodId] = method
           if (abiMethod.payable) {
             abiData.payableMethods.push(methodId)
