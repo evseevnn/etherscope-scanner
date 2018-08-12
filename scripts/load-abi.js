@@ -56,7 +56,7 @@ repositories
               if (abi) {
                 contract.abi = abi
                 try {
-                  const abiData = await getABIData(JSON.parse(abi))
+                  const abiData = await getABIData(contract.address, JSON.parse(abi))
                   Object.assign(contract, abiData)
                 } catch (e) {
                   log(`[${contract.address}] Broken ABI`, e)
