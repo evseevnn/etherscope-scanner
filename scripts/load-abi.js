@@ -16,7 +16,7 @@ async function getABIData(address, abi) {
   abi.forEach(abiMethod => {
     if (abiMethod.name) {
       promises.push(new Promise((resolve, reject) => {
-        if (abiMethod.constant) {
+        if (abiMethod.constant && !abiMethod.inputs.lenght) {
           contract.methods[abiMethod.name]().call()
           .then(value => (abiData.constants[abiMethod.name] = value))
           .then(resolve)
