@@ -11,7 +11,7 @@ repositories
   .connect()
   .then(({
     BlocksReposiroty,
-    TransactionsRepository
+    AddressesRepository
   }) => {
     new TasksPool(NEW_BLOCKS_LISTNER)
       .connectAsReader(async ({ blockNumber }, done) => {
@@ -22,8 +22,18 @@ repositories
           const { block, transactions } = await ethereum.getBlockData(blockNumber)
 
           if (transactions.length) {
+            const contractsAddresses = transactions.filter(transaction => transaction.receipt && transaction.receipt.contractAddress)
+            if (contractsAddresses.length) {
+              // Save contracts
+              const contracts = contractsAddresses.map(address => ({
+                address,
+                type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
+                createdAt: new Date(block.timestamp * 1000)
+              }))
+
             // Save transactions
-            await TransactionsRepository.insert(transactions)
+              await AddressesRepository.insert(contracts)
+            }
             // Replace transaction object on trnsaction hash in block
             block.transactions = block.transactions.map(transaction => transaction.hash)
           }
