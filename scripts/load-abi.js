@@ -17,12 +17,11 @@ async function getABIData(address, abi) {
     if (abiMethod.name) {
       promises.push(new Promise((resolve, reject) => {
         if (abiMethod.constant && abiMethod.stateMutability === 'view' && !abiMethod.inputs.length) {
-          console.log(abiMethod)
-          contract.methods[abiMethod.name]().call()
+          contract.methods[abiMethod.signature]().call()
             .then(value => (abiData.constants[abiMethod.name] = value))
             .then(resolve)
             .catch(error => {
-              log(`Method ${abiMethod.name} error`)
+              log(`[${address}] ABI is not correct`)
               reject(error)
             })
         } else {
@@ -58,9 +57,9 @@ repositories
               const { result: abi } = await etherscanAPI.contract.getabi(contract.address)
               // save to database
               if (abi) {
-                contract.abi = abi
                 try {
-                  const abiData = await getABIData(contract.address, JSON.parse(abi))
+                  contract.abi = JSON.parse(abi)
+                  const abiData = await getABIData(contract.address, contract.abi)
                   Object.assign(contract, abiData)
                 } catch (e) {
                   log(`[${contract.address}] Broken ABI`, e)
