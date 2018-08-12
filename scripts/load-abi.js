@@ -6,6 +6,7 @@ const web3 = require('web3')
 
 async function getABIData(address, abi) {
   if (!Array.isArray(abi)) {
+    log('ABI: ', abi)
     throw new Error(`Cannot read abi data`)
   }
   const contract = new web3.eth.contract(address, abi)
@@ -78,7 +79,7 @@ repositories
             process.exit()
           }
         })
-      }, 250)
+      }, 300)
     }
 
     processing()
