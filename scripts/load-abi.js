@@ -17,10 +17,11 @@ async function getABIData(address, abi) {
     if (abiMethod.name) {
       promises.push(new Promise((resolve, reject) => {
         if (abiMethod.constant && !abiMethod.inputs.length) {
+          console.log(abiMethod)
           contract.methods[abiMethod.name]().call()
-          .then(value => (abiData.constants[abiMethod.name] = value))
-          .then(resolve)
-          .catch(error => log(error))
+            .then(value => (abiData.constants[abiMethod.name] = value))
+            .then(resolve)
+            .catch(reject)
         } else {
           const method = `${abiMethod.name}(${abiMethod.inputs.map(input => input.type).join(',')})`
           const methodId = ethereum.web3.utils.sha3(method).substr(0, 10)
