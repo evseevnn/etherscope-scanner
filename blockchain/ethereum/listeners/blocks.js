@@ -22,16 +22,16 @@ repositories
           const { block, transactions } = await ethereum.getBlockData(blockNumber)
 
           if (transactions.length) {
-            const contractsAddresses = transactions.filter(transaction => transaction.receipt && transaction.receipt.contractAddress)
-            if (contractsAddresses.length) {
+            const transactionsWithContracts = transactions.filter(transaction => transaction.receipt && transaction.receipt.contractAddress)
+            if (transactionsWithContracts.length) {
               // Save contracts
-              const contracts = contractsAddresses.map(address => ({
-                address,
+              const contracts = transactionsWithContracts.map(transaction => ({
+                address: transaction.receipt.contractAddress,
                 type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
                 createdAt: new Date(block.timestamp * 1000)
               }))
 
-            // Save transactions
+              // Save transactions
               await AddressesRepository.insert(contracts)
             }
             // Replace transaction object on trnsaction hash in block
