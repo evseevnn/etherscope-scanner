@@ -16,7 +16,7 @@ async function getABIData(address, abi) {
   abi.forEach(abiMethod => {
     if (abiMethod.name) {
       promises.push(new Promise((resolve, reject) => {
-        if (abiMethod.constant && !abiMethod.inputs.length) {
+        if (abiMethod.constant && abiMethod.stateMutability === 'view' && !abiMethod.inputs.length) {
           console.log(abiMethod)
           contract.methods[abiMethod.name]().call()
             .then(value => (abiData.constants[abiMethod.name] = value))
@@ -24,10 +24,9 @@ async function getABIData(address, abi) {
             .catch(reject)
         } else {
           const method = `${abiMethod.name}(${abiMethod.inputs.map(input => input.type).join(',')})`
-          const methodId = ethereum.web3.utils.sha3(method).substr(0, 10)
-          abiData.methods[methodId] = method
+          abiData.methods[abiMethod.signature] = method
           if (abiMethod.payable) {
-            abiData.payableMethods.push(methodId)
+            abiData.payableMethods.push(abiMethod.signature)
           }
           resolve()
         }
