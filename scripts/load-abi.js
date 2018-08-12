@@ -10,7 +10,7 @@ async function getABIData(address, abi) {
     log('ABI: ', abi)
     throw new Error(`Cannot read abi data`)
   }
-  const contract = new ethereum.web3.eth.contract(address, abi)
+  const contract = new ethereum.web3.eth.Contract(abi, address)
   const abiData = { constants: {}, methods: {}, payableMethods: [] }
   const promises = []
   abi.forEach(abiMethod => {
