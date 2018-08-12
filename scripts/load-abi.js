@@ -53,19 +53,24 @@ repositories
         if (contract) {
           // trying get abi
           log(`[${contract.address}] Trying get ABI`)
-          const { result: abi } = await etherscanAPI.contract.getabi(contract.address)
-          // save to database
-          if (abi) {
-            contract.abi = abi
-            try {
-              const abiData = await getABIData(JSON.parse(abi))
-              Object.assign(contract, abiData)
-            } catch (e) {
-              log(`[${contract.address}] Broken ABI`, e)
+          try {
+            const { result: abi } = await etherscanAPI.contract.getabi(contract.address)
+            // save to database
+            if (abi) {
+              contract.abi = abi
+              try {
+                const abiData = await getABIData(JSON.parse(abi))
+                Object.assign(contract, abiData)
+              } catch (e) {
+                log(`[${contract.address}] Broken ABI`, e)
+                return
+              }
+              await AddressesRepository.upsert(contract)
+              log(`[${contract.address}] ABI Saved`)
+            } else {
+              log(`[${contract.address}] ABI Not Found`)
             }
-            await AddressesRepository.upsert(contract)
-            log(`[${contract.address}] ABI Saved`)
-          } else {
+          } catch (error) {
             log(`[${contract.address}] ABI Not Found`)
           }
         }
