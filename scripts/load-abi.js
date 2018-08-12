@@ -83,7 +83,7 @@ repositories
   .connect()
   .then(async ({ AddressesRepository }) => {
     // Get contracts addresses without abi
-    const contracts = await AddressesRepository.find({ type: AddressesRepository.ADDRESS_TYPE_CONTRACT, abi: { $exists: false } }).noCursorTimeout()
+    const contracts = await AddressesRepository.find({ type: AddressesRepository.ADDRESS_TYPE_CONTRACT, abi: { $exists: false } }).addCursorFlag('noCursorTimeout', true)
     async function processing() {
       setTimeout(() => {
         contracts.next(async (error, contract) => {
