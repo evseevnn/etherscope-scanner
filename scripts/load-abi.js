@@ -13,40 +13,41 @@ async function getABIData(address, abi) {
 
   // Prepare abi output for broken contracts data
   abi = abi.map(abiMethod => {
-    console.log(abiMethod.outputs)
-    return Object.assign(abiMethod, {
-      outputs: abiMethod.outputs.map(item => {
-        let defaultValue
-        switch (true) {
-          case ['bool'].includes(item.type):
-            defaultValue = false
-            break
+    return abiMethod.outputs
+      ? Object.assign(abiMethod, {
+        outputs: abiMethod.outputs.map(item => {
+          let defaultValue
+          switch (true) {
+            case ['bool'].includes(item.type):
+              defaultValue = false
+              break
 
-          case ['string'].includes(item.type):
-            defaultValue = ''
-            break
+            case ['string'].includes(item.type):
+              defaultValue = ''
+              break
 
-          case item.type.startsWith('fixed'):
-          case item.type.startsWith('ufixed'):
-          case item.type.startsWith('uint'):
-          case item.type.startsWith('int'):
-            defaultValue = 0
-            break
+            case item.type.startsWith('fixed'):
+            case item.type.startsWith('ufixed'):
+            case item.type.startsWith('uint'):
+            case item.type.startsWith('int'):
+              defaultValue = 0
+              break
 
-          case item.type.startsWith('address'):
-            defaultValue = '0x'
-            break
+            case item.type.startsWith('address'):
+              defaultValue = '0x'
+              break
 
-          case item.type.startsWith('bytes'):
-            defaultValue = null
-            break
+            case item.type.startsWith('bytes'):
+              defaultValue = null
+              break
 
-          default:
-            defaultValue = null
-        }
-        return Object.assign(item, { value: defaultValue })
+            default:
+              defaultValue = null
+          }
+          return Object.assign(item, { value: defaultValue })
+        })
       })
-    })
+      : abiMethod
   })
 
   const contract = new ethereum.web3.eth.Contract(abi, address)
