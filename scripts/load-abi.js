@@ -30,7 +30,7 @@ async function getABIData(address, abi) {
             case item.type.startsWith('ufixed'):
             case item.type.startsWith('uint'):
             case item.type.startsWith('int'):
-              defaultValue = 0
+              defaultValue = '0'
               break
 
             case item.type.startsWith('address'):
@@ -38,11 +38,11 @@ async function getABIData(address, abi) {
               break
 
             case item.type.startsWith('bytes'):
-              defaultValue = null
+              defaultValue = ''
               break
 
             default:
-              defaultValue = null
+              defaultValue = ''
           }
           return Object.assign(item, { value: defaultValue })
         })
@@ -61,7 +61,7 @@ async function getABIData(address, abi) {
             .then(value => (abiData.constants[abiMethod.name] = value))
             .then(resolve)
             .catch(error => {
-              log(`[${address}] ABI is not correct`)
+              log(`[${address}][${abiMethod.name}] ABI is not correct`)
               reject(error.toString())
             })
         } else {
