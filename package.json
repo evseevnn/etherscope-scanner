@@ -6,21 +6,24 @@
   "author": "Nikolay Evseev <evseevnn@gmail.com>",
   "private": true,
   "scripts": {
+    "generate-interfaces": "node ./ethereum/interfaces/generator",
+    "get-code": "node ./script/get-code.js",
     "tracing": "node .",
-    "accounts-grabber": "node ./scripts/accounts-grabber.js",
-    "ethereum-blocks-listner": "node ./blockchain/ethereum/listner/blocks",
-    "ethereum-events-listner": "node ./blockchain/ethereum/listners/events"
+    "blocks-listner": "node ./ethereum/listeners/blocks.js",
+    "set-contracts-instances": "node ./scripts/set-contracts-instances.js"
   },
   "dependencies": {
     "debug": "^3.1.0",
     "dotenv": "^6.0.0",
     "etherscan-api": "^8.1.2",
+    "glob": "^7.1.2",
     "limiter": "^1.1.3",
     "mongodb": "^3.1.1",
     "node-schedule": "^1.3.0",
     "nsqjs": "^0.10.1",
     "web3": "^1.0.0-beta.35",
-    "websocket": "^1.0.26"
+    "websocket": "^1.0.26",
+    "zeppelin-solidity": "^1.12.0"
   },
   "devDependencies": {
     "eslint": "^3.13.1",
@@ -30,6 +33,8 @@
     "eslint-plugin-import": "^2.13.0",
     "eslint-plugin-node": "^4.2.2",
     "eslint-plugin-promise": "^3.8.0",
-    "eslint-plugin-standard": "^3.1.0"
+    "eslint-plugin-standard": "^3.1.0",
+    "solc": "^0.4.24",
+    "truffle": "^4.1.14"
   }
 }

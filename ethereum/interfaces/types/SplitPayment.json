@@ -1,0 +1,135 @@
+{
+  "contractName": "SplitPayment",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "totalShares",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "_signature": "totalShares()",
+      "_hash": "0x3a98ef39"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "payees",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "_signature": "payees(uint256)",
+      "_hash": "0x63037b0c"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "released",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "_signature": "released(address)",
+      "_hash": "0x9852595c"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "shares",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "_signature": "shares(address)",
+      "_hash": "0xce7c2ac2"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "totalReleased",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "_signature": "totalReleased()",
+      "_hash": "0xe33b7de3"
+    },
+    {
+      "inputs": [
+        {
+          "name": "_payees",
+          "type": "address[]"
+        },
+        {
+          "name": "_shares",
+          "type": "uint256[]"
+        }
+      ],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "constructor",
+      "_signature": "undefined(address[],uint256[])",
+      "_hash": "0xee03c29c6379661828a12f0fc62cebefa7bf9bb4af0533364f180c9479661d51"
+    },
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback",
+      "_signature": "undefined(undefined)",
+      "_hash": "0x1267f0ff9511d28ec10ac973521dcd0e6eed13f417bce65d08cb19da5ed3e346"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "claim",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function",
+      "_signature": "claim()",
+      "_hash": "0x4e71d92d"
+    }
+  ]
+}

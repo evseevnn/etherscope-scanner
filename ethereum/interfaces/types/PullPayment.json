@@ -1,0 +1,45 @@
+{
+  "contractName": "PullPayment",
+  "abi": [
+    {
+      "inputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor",
+      "_signature": "undefined()",
+      "_hash": "0x3af39c214ef9ce7301becac0feecfeca04d815964a9d5f1147e4cbd227fe0d3d"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "withdrawPayments",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function",
+      "_signature": "withdrawPayments()",
+      "_hash": "0x6103d70b"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_dest",
+          "type": "address"
+        }
+      ],
+      "name": "payments",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "_signature": "payments(address)",
+      "_hash": "0xe2982c21"
+    }
+  ]
+}

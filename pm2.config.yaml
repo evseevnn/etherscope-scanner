@@ -1,0 +1,12 @@
+apps:
+  - script: index.js
+    name: scanner
+    instances: 1
+    exec_mode: fork
+    args: --expose-gc
+
+  - script: ./ethereum/listeners/blocks.js
+    name: blocks-listner
+    instances: 4
+    exec_mode: fork
+    autorestart: true

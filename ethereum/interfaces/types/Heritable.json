@@ -1,0 +1,278 @@
+{
+  "contractName": "Heritable",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function",
+      "_signature": "renounceOwnership()",
+      "_hash": "0x715018a6"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "_signature": "owner()",
+      "_hash": "0x8da5cb5b"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function",
+      "_signature": "transferOwnership(address)",
+      "_hash": "0xf2fde38b"
+    },
+    {
+      "inputs": [
+        {
+          "name": "_heartbeatTimeout",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor",
+      "_signature": "undefined(uint256)",
+      "_hash": "0x5ded329876fe3fb605c08799398b82b610b510b96cb7880e750d6b5b19357f22"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "newHeir",
+          "type": "address"
+        }
+      ],
+      "name": "HeirChanged",
+      "type": "event",
+      "_signature": "HeirChanged(address,address)",
+      "_hash": "0x4e6093f85fa64484abd692810d8a44d508792ff7b7a021d9fbd69fa1c6ff18a0"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerHeartbeated",
+      "type": "event",
+      "_signature": "OwnerHeartbeated(address)",
+      "_hash": "0xd40b9d9a7572411aff4bbb95ba7bd9a9d4e9b70747ec46f8fe7913c309b68452"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "heir",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "timeOfDeath",
+          "type": "uint256"
+        }
+      ],
+      "name": "OwnerProclaimedDead",
+      "type": "event",
+      "_signature": "OwnerProclaimedDead(address,address,uint256)",
+      "_hash": "0x66389f1f3251c39e71cb18351daefea45bda23e98df0767266b8aed4ff938277"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "HeirOwnershipClaimed",
+      "type": "event",
+      "_signature": "HeirOwnershipClaimed(address,address)",
+      "_hash": "0x1017a357e19071e4408dbd385f24e591aa5bcee52b444dc0c8abddbe6ad29de6"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "previousOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipRenounced",
+      "type": "event",
+      "_signature": "OwnershipRenounced(address)",
+      "_hash": "0xf8df31144d9c2f0f6b59d69b8b98abd5459d07f2742c4df920b25aae33c64820"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event",
+      "_signature": "OwnershipTransferred(address,address)",
+      "_hash": "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_newHeir",
+          "type": "address"
+        }
+      ],
+      "name": "setHeir",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function",
+      "_signature": "setHeir(address)",
+      "_hash": "0x23defc77"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "heir",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "_signature": "heir()",
+      "_hash": "0x91f2ebb8"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "heartbeatTimeout",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "_signature": "heartbeatTimeout()",
+      "_hash": "0x7bca38be"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "timeOfDeath",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "_signature": "timeOfDeath()",
+      "_hash": "0xb4a8f3e6"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "removeHeir",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function",
+      "_signature": "removeHeir()",
+      "_hash": "0xebf88de4"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "proclaimDeath",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function",
+      "_signature": "proclaimDeath()",
+      "_hash": "0x24845131"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "heartbeat",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function",
+      "_signature": "heartbeat()",
+      "_hash": "0x3defb962"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "claimHeirOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function",
+      "_signature": "claimHeirOwnership()",
+      "_hash": "0x1c921e16"
+    }
+  ]
+}

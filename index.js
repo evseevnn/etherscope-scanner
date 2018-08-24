@@ -1,8 +1,8 @@
 // Load environment variables
 require('dotenv').load()
 const log = require('debug')('scanner')
-const Ethereum = require('./blockchain/ethereum')
-const EthereumListners = require('./blockchain/ethereum/listeners')
+const Ethereum = require('./ethereum')
+const EthereumListners = require('./ethereum/listeners')
 const TasksPool = require('./TasksPool')
 const repositories = require('./db/repositories')
 

@@ -6,23 +6,22 @@ require('dotenv').load()
 const log = require('debug')('accounts-grabber')
 const repositories = require('../db/repositories')
 
-const TRANSACTIONS_PER_TIME = 100000
+const CONTRACTS_PER_TIME = 100000
 
 repositories
   .connect()
   .then(async ({
-    AddressesRepository,
-    TransactionsRepository
+    AddressesRepository
   }) => {
-    async function getNextTransactionsAddresses(lastId = null) {
-      let search = {}
+    async function getNextAddresses(lastId = null) {
+      let search = { type: AddressesRepository.ADDRESS_TYPE_CONTRACT, abi: { $exists: false } }
       if (lastId) {
-        search = { _id: { $gt: lastId } }
+        search = Object.assign(search, { _id: { $gt: lastId } })
       }
-      const transactions = await TransactionsRepository.find(search).sort({ blockNumber: 1 }).limit(TRANSACTIONS_PER_TIME).toArray()
-      if (transactions.length) {
+      const contracts = await AddressesRepository.find(search).limit(CONTRACTS_PER_TIME).toArray()
+      if (contracts.length) {
         // Get contracts
-        const contracts = transactions.map(transaction => transaction.receipt.contractAddress)
+        const contracts = contracts.map(contract => transaction.receipt.contractAddress)
         // Get accounts
         const accounts = [].concat(...transactions.map(transaction => [transaction.from, transaction.to]))
 
@@ -51,12 +50,12 @@ repositories
         }
 
         // Getting next part
-        setImmediate(() => getNextTransactionsAddresses(transactions[transactions.length - 1]._id))
+        setImmediate(() => getNextAddresses(transactions[transactions.length - 1]._id))
       } else {
         log(`Finish`)
         process.exit()
       }
     }
-    getNextTransactionsAddresses()
+    getNextAddresses()
   })
   .catch(log)
