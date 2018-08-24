@@ -9,9 +9,7 @@ glob.sync('types/*.json', { cwd: __dirname })
     if (!typeData.abi || !typeData.abi.length) {
       throw new Error(`Contract type ${type} is not correct`)
     }
-    availableTypes[type] = typeData.abi.map(method => {
-      return method._hash
-    })
+    availableTypes[type] = typeData
   })
 
 module.exports = availableTypes

@@ -25,17 +25,22 @@ repositories
             const transactionsWithContracts = transactions.filter(transaction => transaction.receipt && transaction.receipt.contractAddress)
             if (transactionsWithContracts.length) {
               // Save contracts
-              const contracts = transactionsWithContracts.map(transaction => ({
-                instanceOf: ethereum.getContractInterfaces(transaction.receipt.contractAddress),
-                address: transaction.receipt.contractAddress,
-                type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
-                createdAt: new Date(block.timestamp * 1000)
-              }))
-
-              console.log(contracts)
+              const promises = []
+              transactionsWithContracts.forEach(transaction => {
+                const interfaces = ethereum.getContractInterfaces(transaction.receipt.contractAddress)
+                promises.push(ethereum.getContractDataByInterfaces(transaction.receipt.contractAddress, interfaces).then(data => {
+                  return {
+                    instanceOf: interfaces,
+                    data,
+                    address: transaction.receipt.contractAddress,
+                    type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
+                    createdAt: new Date(block.timestamp * 1000)
+                  }
+                }))
+              })
 
               // Save transactions
-              await AddressesRepository.insert(contracts)
+              await AddressesRepository.insert(await Promise.all(promises))
             }
             // Replace transaction object on trnsaction hash in block
             block.transactions = block.transactions.map(transaction => transaction.hash)

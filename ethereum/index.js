@@ -4,7 +4,23 @@ const EventEmitter = require('events')
 const exec = require('child_process')
 
 const REQUEST_INTERVAL = 1000 // every second
-const availableContractsInterfaces = require('./interfaces')
+const contractsInterfaces = require('./interfaces')
+const contractsFuncHashes = {}
+Object.keys(contractsInterfaces).forEach(interfaceName => {
+  const abiEntities = contractsInterfaces[interfaceName].abi
+  const hashes = []
+  abiEntities.forEach(abiEntity => {
+    if (
+      abiEntity.name &&
+      abiEntity.type === 'function'
+    ) {
+      hashes.push(abiEntity._hash)
+    }
+  })
+  if (hashes.length) {
+    contractsFuncHashes[interfaceName] = hashes
+  }
+})
 
 class Ethereum extends EventEmitter {
   constructor({ url = 'ws://localhost:8546', firstBlockNumber = 0 } = {}) {
@@ -119,11 +135,53 @@ class Ethereum extends EventEmitter {
     return exec.execSync(`myth -d -a "${address}" --rpctls=${process.env.ETHEREUM_NODE_URL}`).toString()
   }
 
+  /**
+   * Return contract interfaces
+   * @param {String} address
+   */
   getContractInterfaces(address) {
     const contractOpcode = this.getContractOpcode(address)
 
     // Check types
-    return Object.keys(availableContractsInterfaces).filter(interfaceName => availableContractsInterfaces[interfaceName].every(hash => new RegExp(`\s*${hash}\s*`).test(contractOpcode)))
+    return Object.keys(contractsFuncHashes).filter(interfaceName => {
+      const result = contractsFuncHashes[interfaceName].every(hash => {
+        return new RegExp(hash).test(contractOpcode)
+      })
+      return result
+    })
+  }
+
+  /**
+   * Return data from contract using interfaces
+   * @param {String} address
+   * @param {Array<String>} interfaces
+   */
+  async getContractDataByInterfaces(address, interfaces) {
+    const contractData = {}
+    const promises = []
+    interfaces.forEach(interfaceName => {
+      if (!contractsInterfaces[interfaceName]) {
+        log(`Interface with name ${interfaceName} is not found`)
+      } else {
+        const interfaceData = contractsInterfaces[interfaceName]
+        const contract = new this.web3.eth.Contract(interfaceData.abi, address)
+        interfaceData.abi.forEach(abiEntity => {
+          if (
+            abiEntity.name &&
+            !abiEntity.inputs.length &&
+            abiEntity.type === 'function' &&
+            (abiEntity.constant || abiEntity.stateMutability === 'view')
+          ) {
+            promises.push(contract.methods[abiEntity.name]().call().then(value => (contractData[abiEntity.name] = value)).catch(() => log(`[${address}][${abiEntity.name}] Cannot get contract data from method`)))
+          }
+        })
+      }
+    })
+    return Promise.all(promises)
+      .then(() => contractData)
+      .catch(error => {
+        log(`[${address}] Cannot get contract data`, error.toString())
+      })
   }
 }
 

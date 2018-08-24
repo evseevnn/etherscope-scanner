@@ -5,7 +5,7 @@ const Ethereum = require('../ethereum')
 
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_URL })
 
-const CONTRACTS_PER_TIME = 10000
+const CONTRACTS_PER_TIME = 10
 
 repositories
   .connect()
@@ -19,15 +19,22 @@ repositories
 
       const contracts = await AddressesRepository.find(search).limit(CONTRACTS_PER_TIME).toArray()
       if (contracts.length) {
+        const promises = []
         contracts.forEach(contract => {
-          contract.instanceOf = ethereum.getContractInterfaces(contract.address)
-          log(`[${contract.address}] instanceOf `, contract.instanceOf)
+          const interfaces = ethereum.getContractInterfaces(contract.address)
+          log(`[${contract.address}] instanceOf `, interfaces)
+          promises.push(ethereum.getContractDataByInterfaces(contract.address, interfaces).then(data => {
+            contract.instanceOf = interfaces
+            contract.data = data
+            contract.opcode = ethereum.getContractOpcode(contract.address)
+            return contract
+          }))
         })
 
-        await AddressesRepository.upsert(contracts)
+        await AddressesRepository.upsert(await Promise.all(promises))
 
         // Getting next part
-        setImmediate(() => getNextAddresses(contracts[contracts.length - 1]._id))
+        setImmediate(() => getNextAddresses(contracts.pop()._id))
       } else {
         log(`Finish`)
         process.exit()
