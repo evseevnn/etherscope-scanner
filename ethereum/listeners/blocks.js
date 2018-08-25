@@ -41,11 +41,7 @@ repositories
                 }))
               })
 
-              // Save transactions
-              const contractsForSave = (await Promise.all(promises)).filter(contract => contract.instanceOf.length)
-              if (contractsForSave.length) {
-                await AddressesRepository.upsert(contractsForSave)
-              }
+              await AddressesRepository.upsert(await Promise.all(promises))
             }
             // Replace transaction object on trnsaction hash in block
             block.transactions = block.transactions.map(transaction => transaction.hash)
