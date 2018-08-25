@@ -1,5 +1,6 @@
 require('dotenv').load()
-const log = require('debug')('ethereum:listners:blocks')
+const log = require('debug')('ethereum:listners:blocks:contracts')
+const logBlockProcessing = require('debug')('ethereum:listners:blocks:processing')
 const TasksPool = require('../../TasksPool')
 const { NEW_BLOCKS_LISTNER } = require('.')
 const Ethereum = require('../')
@@ -15,7 +16,7 @@ repositories
   }) => {
     new TasksPool(NEW_BLOCKS_LISTNER)
       .connectAsReader(async ({ blockNumber }, done) => {
-        log(`[#${blockNumber}] Start processing block`)
+        logBlockProcessing(`[#${blockNumber}] Start processing block`)
 
         try {
           // Make block from block data
@@ -29,6 +30,7 @@ repositories
               transactionsWithContracts.forEach(transaction => {
                 const interfaces = ethereum.getContractInterfaces(transaction.receipt.contractAddress)
                 promises.push(ethereum.getContractDataByInterfaces(transaction.receipt.contractAddress, interfaces).then(data => {
+                  log(`[#${blockNumber}][${transaction.receipt.contractAddress}] interfaces ${interfaces.join(', ')}`)
                   return {
                     instanceOf: interfaces,
                     data,
@@ -40,7 +42,10 @@ repositories
               })
 
               // Save transactions
-              await AddressesRepository.insert(await Promise.all(promises))
+              const contractsForSave = (await Promise.all(promises)).filter(contract => contract.instanceOf.length)
+              if (contractsForSave.length) {
+                await AddressesRepository.upsert(contractsForSave)
+              }
             }
             // Replace transaction object on trnsaction hash in block
             block.transactions = block.transactions.map(transaction => transaction.hash)
@@ -49,10 +54,10 @@ repositories
           // Save block at last
           await BlocksReposiroty.insert(block)
 
-          log(`[#${blockNumber}] Done (tx=${transactions.length})`)
+          logBlockProcessing(`[#${blockNumber}] Done (tx=${transactions.length})`)
           setImmediate(() => done())
         } catch (error) {
-          log(`[#${blockNumber}] processing error`, error)
+          logBlockProcessing(`[#${blockNumber}] processing error`, error)
           process.exit()
         }
       })
