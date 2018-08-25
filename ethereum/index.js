@@ -139,13 +139,15 @@ class Ethereum extends EventEmitter {
    * Return contract interfaces
    * @param {String} address
    */
-  getContractInterfaces(address) {
-    const contractOpcode = this.getContractOpcode(address)
+  getContractInterfaces(address, opcode) {
+    if (!opcode) {
+      opcode = this.getContractOpcode(address)
+    }
 
     // Check types
     return Object.keys(contractsFuncHashes).filter(interfaceName => {
       const result = contractsFuncHashes[interfaceName].every(hash => {
-        return new RegExp(hash).test(contractOpcode)
+        return new RegExp(hash).test(opcode)
       })
       return result
     })

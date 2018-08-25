@@ -21,12 +21,13 @@ repositories
       if (contracts.length) {
         const promises = []
         contracts.forEach(contract => {
-          const interfaces = ethereum.getContractInterfaces(contract.address)
+          const opcode = ethereum.getContractOpcode(contract.address)
+          const interfaces = ethereum.getContractInterfaces(contract.address, opcode)
           log(`[${contract.address}] instanceOf ${interfaces.join(', ')}`)
           promises.push(ethereum.getContractDataByInterfaces(contract.address, interfaces).then(data => {
             contract.instanceOf = interfaces
             contract.data = data
-            contract.opcode = ethereum.getContractOpcode(contract.address)
+            contract.opcode = opcode
             return contract
           }))
         })

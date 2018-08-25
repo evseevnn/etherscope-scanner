@@ -28,12 +28,14 @@ repositories
               // Save contracts
               const promises = []
               transactionsWithContracts.forEach(transaction => {
-                const interfaces = ethereum.getContractInterfaces(transaction.receipt.contractAddress)
+                const opcode = ethereum.getContractOpcode(transaction.receipt.contractAddress)
+                const interfaces = ethereum.getContractInterfaces(transaction.receipt.contractAddress, opcode)
                 promises.push(ethereum.getContractDataByInterfaces(transaction.receipt.contractAddress, interfaces).then(data => {
                   log(`[#${blockNumber}][${transaction.receipt.contractAddress}] interfaces ${interfaces.join(', ')}`)
                   return {
                     instanceOf: interfaces,
                     data,
+                    opcode,
                     address: transaction.receipt.contractAddress,
                     type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
                     createdAt: new Date(block.timestamp * 1000)
