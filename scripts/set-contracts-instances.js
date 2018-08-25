@@ -3,7 +3,7 @@ const log = require('debug')('scripts:set-contracts-instances')
 const repositories = require('../db/repositories')
 const Ethereum = require('../ethereum')
 
-const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_URL })
+const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 
 const CONTRACTS_PER_TIME = 10
 
@@ -22,7 +22,7 @@ repositories
         const promises = []
         contracts.forEach(contract => {
           const interfaces = ethereum.getContractInterfaces(contract.address)
-          log(`[${contract.address}] instanceOf `, interfaces)
+          log(`[${contract.address}] instanceOf ${interfaces.join(', ')}`)
           promises.push(ethereum.getContractDataByInterfaces(contract.address, interfaces).then(data => {
             contract.instanceOf = interfaces
             contract.data = data
