@@ -3,6 +3,7 @@
 ```
 db.getCollection('addresses').createIndex({type: 1}, {background: true})
 db.getCollection('addresses').createIndex({address: 1}, {background: true})
+db.getCollection('addresses').createIndex({instanceOf: 1}, {background: true})
 db.getCollection('blocks').createIndex({number: 1}, {unique: 1, background: true})
 db.getCollection('blocks').createIndex({miner: 1}, {background: true})
 db.getCollection('blocks').createIndex({author: 1}, {background: true})
