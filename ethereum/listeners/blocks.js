@@ -18,45 +18,52 @@ repositories
       .connectAsReader(async ({ blockNumber }, done) => {
         logBlockProcessing(`[#${blockNumber}] Start processing block`)
 
-        try {
-          // Make block from block data
-          const { block, transactions } = await ethereum.getBlockData(blockNumber)
+        const [ isBlockExist ] = await BlocksReposiroty.find({ number: blockNumber }).limit(1).toArray()
 
-          if (transactions.length) {
-            const transactionsWithContracts = transactions.filter(transaction => transaction.receipt && transaction.receipt.contractAddress)
-            if (transactionsWithContracts.length) {
-              // Save contracts
-              const promises = []
-              transactionsWithContracts.forEach(transaction => {
-                const opcode = ethereum.getContractOpcode(transaction.receipt.contractAddress)
-                const interfaces = ethereum.getContractInterfaces(transaction.receipt.contractAddress, opcode)
-                promises.push(ethereum.getContractDataByInterfaces(transaction.receipt.contractAddress, interfaces).then(data => {
-                  log(`[#${blockNumber}][${transaction.receipt.contractAddress}] interfaces ${interfaces.join(', ')}`)
-                  return {
-                    instanceOf: interfaces,
-                    data,
-                    opcode,
-                    address: transaction.receipt.contractAddress,
-                    type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
-                    createdAt: new Date(block.timestamp * 1000)
-                  }
-                }))
-              })
+        if (!isBlockExist) {
+          try {
+            // Make block from block data
+            const { block, transactions } = await ethereum.getBlockData(blockNumber)
 
-              await AddressesRepository.upsert(await Promise.all(promises))
+            if (transactions.length) {
+              const transactionsWithContracts = transactions.filter(transaction => transaction.receipt && transaction.receipt.contractAddress)
+              if (transactionsWithContracts.length) {
+                // Save contracts
+                const promises = []
+                transactionsWithContracts.forEach(transaction => {
+                  const opcode = ethereum.getContractOpcode(transaction.receipt.contractAddress)
+                  const interfaces = ethereum.getContractInterfaces(transaction.receipt.contractAddress, opcode)
+                  promises.push(ethereum.getContractDataByInterfaces(transaction.receipt.contractAddress, interfaces).then(data => {
+                    log(`[#${blockNumber}][${transaction.receipt.contractAddress}] interfaces ${interfaces.join(', ')}`)
+                    return {
+                      instanceOf: interfaces,
+                      data,
+                      opcode,
+                      address: transaction.receipt.contractAddress,
+                      type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
+                      createdAt: new Date(block.timestamp * 1000)
+                    }
+                  }))
+                })
+
+                await AddressesRepository.upsert(await Promise.all(promises))
+              }
+              // Replace transaction object on trnsaction hash in block
+              block.transactions = block.transactions.map(transaction => transaction.hash)
             }
-            // Replace transaction object on trnsaction hash in block
-            block.transactions = block.transactions.map(transaction => transaction.hash)
+
+            // Save block at last
+            await BlocksReposiroty.insert(block)
+
+            logBlockProcessing(`[#${blockNumber}] Done (tx=${transactions.length})`)
+            setImmediate(() => done())
+          } catch (error) {
+            logBlockProcessing(`[#${blockNumber}] processing error`, error)
+            process.exit()
           }
-
-          // Save block at last
-          await BlocksReposiroty.insert(block)
-
-          logBlockProcessing(`[#${blockNumber}] Done (tx=${transactions.length})`)
+        } else {
+          logBlockProcessing(`[#${blockNumber}] Exist`)
           setImmediate(() => done())
-        } catch (error) {
-          logBlockProcessing(`[#${blockNumber}] processing error`, error)
-          process.exit()
         }
       })
   })
