@@ -132,7 +132,12 @@ class Ethereum extends EventEmitter {
    * @param {String} address
    */
   getContractOpcode(address) {
-    return exec.execSync(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`).toString()
+    try {
+      return exec.execSync(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`).toString()
+    } catch (error) {
+      log(error.toString())
+      return null
+    }
   }
 
   /**
