@@ -10,3 +10,4 @@ apps:
     instances: 4
     exec_mode: fork
     autorestart: true
+    args: --expose-gc

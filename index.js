@@ -57,17 +57,3 @@ repositories
           })
       })
   })
-
-// // Tracing events
-// const eventsPool = new TasksPool(EthereumListners.EVENTS_LISTNER)
-// eventsPool
-//   .connectAsWriter()
-//   .then(() => {
-//     log('Ethereum events listner started')
-//     // Start tracing new events
-//     ethereum.subscribe('logs', {})
-//       .on('data', (data) => {
-//         log(`[#${data.blockNumber}] ${data.logIndex}`)
-//         eventsPool.push(data)
-//       })
-//   })

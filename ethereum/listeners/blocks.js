@@ -12,7 +12,8 @@ repositories
   .connect()
   .then(({
     BlocksReposiroty,
-    AddressesRepository
+    AddressesRepository,
+    TransactionsRepository
   }) => {
     new TasksPool(NEW_BLOCKS_LISTNER)
       .connectAsReader(async ({ blockNumber }, done) => {
@@ -48,6 +49,10 @@ repositories
 
                 await AddressesRepository.upsert(await Promise.all(promises))
               }
+
+              // Save last transactions
+              TransactionsRepository.insert(block.transactions)
+
               // Replace transaction object on trnsaction hash in block
               block.transactions = block.transactions.map(transaction => transaction.hash)
             }
@@ -57,6 +62,9 @@ repositories
 
             logBlockProcessing(`[#${blockNumber}] Done (tx=${transactions.length})`)
             setImmediate(() => done())
+
+            // Collect garbage
+            global.gc && global.gc()
           } catch (error) {
             logBlockProcessing(`[#${blockNumber}] processing error`, error)
             process.exit()
