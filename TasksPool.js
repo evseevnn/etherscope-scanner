@@ -91,6 +91,8 @@ class TasksPool {
 
             callback(JSON.parse(msg.body.toString()), () => {
               clearTimeout(touchTimeout)
+              // Collect garbage
+              global.gc && global.gc()
               msg.finish()
             })
           })

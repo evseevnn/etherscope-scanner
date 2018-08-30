@@ -1,8 +1,11 @@
+### Capped collections
+```
+db.createCollection('transactions', { capped: true, size: 2147483648 })
+```
+
 ### Indexes
 
 ```
-db.createCollection('transactions', { capped: true, size: 1073741824 })
-
 db.getCollection('addresses').createIndex({type: 1}, {background: true})
 db.getCollection('addresses').createIndex({address: 1}, {background: true})
 db.getCollection('addresses').createIndex({instanceOf: 1}, {background: true})

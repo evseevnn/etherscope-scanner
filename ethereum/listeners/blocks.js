@@ -8,6 +8,13 @@ const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 
 const repositories = require('../../db/repositories')
 
+// Exit after 3 hours of work.
+// Need for temporary fix problem with memory overflow
+// PM2 will start process again
+setTimeout(() => {
+  process.exit(0)
+}, 3 * 60 * 60 * 1000)
+
 repositories
   .connect()
   .then(({
@@ -62,9 +69,6 @@ repositories
 
             logBlockProcessing(`[#${blockNumber}] Done (tx=${transactions.length})`)
             setImmediate(() => done())
-
-            // Collect garbage
-            global.gc && global.gc()
           } catch (error) {
             logBlockProcessing(`[#${blockNumber}] processing error`, error)
             process.exit()
