@@ -24,7 +24,9 @@ lineReader.on('line', function (line) {
 })
 
 const fs = require('fs')
-fs.unlinkSync(process.env.DUMP_OUTPUT_FILE)
+if (fs.existsSync(process.env.DUMP_OUTPUT_FILE)) {
+  fs.unlinkSync(process.env.DUMP_OUTPUT_FILE)
+}
 
 lineReader.on('close', () => {
   // Start reading again and write data to file
