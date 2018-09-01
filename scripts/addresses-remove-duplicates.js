@@ -15,7 +15,7 @@ lineReader.on('line', function (line) {
         addresses[json.address] = { _id: json._id.$oid, opcode: true }
       }
     } else {
-      addresses[json.address] = { _id: json._id.$oid, opcode: json.opcode.toString().startsWith('0 ') }
+      addresses[json.address] = { _id: json._id.$oid, opcode: (json.opcode && json.opcode.toString().startsWith('0 ')) }
     }
   } catch (error) {
     console.log(error.toString())
