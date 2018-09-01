@@ -23,6 +23,7 @@ lineReader.on('line', function (line) {
   }
 })
 
+const { EOL } = require('os')
 const fs = require('fs')
 if (fs.existsSync(process.env.DUMP_OUTPUT_FILE)) {
   fs.unlinkSync(process.env.DUMP_OUTPUT_FILE)
@@ -38,7 +39,7 @@ lineReader.on('close', () => {
     try {
       const json = JSON.parse(line)
       if (addresses[json.address] && json._id.$oid === addresses[json.address]._id) {
-        fs.appendFileSync(process.env.DUMP_OUTPUT_FILE, line)
+        fs.appendFileSync(process.env.DUMP_OUTPUT_FILE, `${line}${EOL}`)
       }
     } catch (error) {
       console.log(error.toString())
