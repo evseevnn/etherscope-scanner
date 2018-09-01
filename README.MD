@@ -7,7 +7,7 @@ db.createCollection('transactions', { capped: true, size: 2147483648 })
 
 ```
 db.getCollection('addresses').createIndex({type: 1}, {background: true})
-db.getCollection('addresses').createIndex({address: 1}, {background: true})
+db.getCollection('addresses').createIndex({address: 1}, {unique : true, dropDups : true, background: true})
 db.getCollection('addresses').createIndex({instanceOf: 1}, {background: true})
 db.getCollection('blocks').createIndex({number: 1}, {unique: 1, background: true})
 db.getCollection('blocks').createIndex({miner: 1}, {background: true})

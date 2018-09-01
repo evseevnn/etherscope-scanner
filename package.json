@@ -10,7 +10,8 @@
     "get-code": "node ./script/get-code.js",
     "tracing": "node .",
     "blocks-listner": "node ./ethereum/listeners/blocks.js",
-    "set-contracts-instances": "node ./scripts/set-contracts-instances.js"
+    "set-contracts-instances": "node ./scripts/set-contracts-instances.js",
+    "clean-addresses": "node ./scripts/addresses-remove-duplicates.js"
   },
   "dependencies": {
     "debug": "^3.1.0",
