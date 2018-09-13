@@ -38,8 +38,8 @@ const readerOptions = {
 }
 
 class TasksPool {
-  constructor(name) {
-    this.name = name
+  constructor(topic) {
+    this.topic = topic
   }
 
   connectAsWriter() {
@@ -59,15 +59,15 @@ class TasksPool {
   }
 
   send(data) {
-    nsqWriter.publish(this.name, data, (error) => {
+    nsqWriter.publish(this.topic, data, (error) => {
       if (error) {
         log(error)
       }
     })
   }
 
-  connectAsReader(callback) {
-    nsqReader = new Reader(this.name, 'scanner', readerOptions)
+  connectAsReader(channel, callback) {
+    nsqReader = new Reader(this.topic, channel, readerOptions)
     nsqReader.connect()
     let touchTimeout
     nsqReader

@@ -6,15 +6,11 @@ class AddressesRepository extends BaseRepository {
   }
 
   get ADDRESS_TYPE_ACCOUNT() {
-    return 'account'
+    return 'address'
   }
 
   get name() {
     return 'addresses'
-  }
-
-  get uniqueFields() {
-    return ['address']
   }
 }
 

@@ -9,12 +9,16 @@ class BaseRepository {
     throw new Error('Not Implemented')
   }
 
-  get uniqueFields() {
-    return []
-  }
-
   find(filter, fields) {
     return this.collection.find(filter, fields)
+  }
+
+  count(filter) {
+    return this.collection.countDocuments(filter)
+  }
+
+  distinct(field, filter = {}) {
+    return this.collection.distinct(field, filter)
   }
 
   async insert(documents) {
@@ -25,15 +29,16 @@ class BaseRepository {
     return result
   }
 
-  async upsert(documents) {
+  async update(documents, filterBy = [], upsert = false) {
     if (!Array.isArray(documents)) {
       documents = [documents]
     }
     const operations = documents.map(document => {
       const filter = {}
-      this.uniqueFields.forEach(field => {
+      filterBy.forEach(field => {
         if (document[field]) {
           filter[field] = document[field]
+          delete document[field]
         }
       })
       delete document._id
@@ -41,7 +46,7 @@ class BaseRepository {
         updateOne: {
           filter,
           update: { $set: document },
-          upsert: true
+          upsert
         }
       }
     })

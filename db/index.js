@@ -1,5 +1,5 @@
 const { MongoClient } = require('mongodb')
-const log = require('debug')
+const log = require('debug')('scanner:db')
 
 class DB {
   constructor({ address } = { address: process.env.DB_ADDRESS || 'mongodb://localhost:27017/main' }) {

@@ -32,7 +32,7 @@ repositories
           }))
         })
 
-        await AddressesRepository.upsert(await Promise.all(promises))
+        await AddressesRepository.update(await Promise.all(promises), ['address'], true)
 
         // Getting next part
         setImmediate(() => getNextAddresses(contracts.pop()._id))
@@ -43,4 +43,4 @@ repositories
     }
     getNextAddresses()
   })
-  .catch(() => log())
+  .catch((error) => log(error))

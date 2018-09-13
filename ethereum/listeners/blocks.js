@@ -1,9 +1,8 @@
 require('dotenv').load()
-const log = require('debug')('ethereum:listners:blocks:contracts')
-const logBlockProcessing = require('debug')('ethereum:listners:blocks:processing')
+const log = require('debug')('ethereum:listners:blocks')
 const TasksPool = require('../../TasksPool')
 const { NEW_BLOCKS_LISTNER } = require('.')
-const Ethereum = require('../')
+const Ethereum = require('..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 
 const repositories = require('../../db/repositories')
@@ -23,8 +22,8 @@ repositories
     TransactionsRepository
   }) => {
     new TasksPool(NEW_BLOCKS_LISTNER)
-      .connectAsReader(async ({ blockNumber }, done) => {
-        logBlockProcessing(`[#${blockNumber}] Start processing block`)
+      .connectAsReader('blocks', async ({ blockNumber }, done) => {
+        log(`[#${blockNumber}] Start processing block`)
 
         const [ isBlockExist ] = await BlocksReposiroty.find({ number: blockNumber }).limit(1).toArray()
 
@@ -54,8 +53,11 @@ repositories
                   }))
                 })
 
-                await AddressesRepository.upsert(await Promise.all(promises))
+                await AddressesRepository.update(await Promise.all(promises), ['address'], true)
               }
+
+              // Add timestamp from block to transactions
+              block.transactions = block.transactions.map(transaction => (transaction.timestamp = block.timestamp))
 
               // Save last transactions
               TransactionsRepository.insert(block.transactions)
@@ -67,14 +69,14 @@ repositories
             // Save block at last
             await BlocksReposiroty.insert(block)
 
-            logBlockProcessing(`[#${blockNumber}] Done (tx=${transactions.length})`)
+            log(`[#${blockNumber}] Done (tx=${transactions.length})`)
             setImmediate(() => done())
           } catch (error) {
-            logBlockProcessing(`[#${blockNumber}] processing error`, error)
+            log(`[#${blockNumber}] processing error`, error)
             process.exit()
           }
         } else {
-          logBlockProcessing(`[#${blockNumber}] Exist`)
+          log(`[#${blockNumber}] Exist`)
           setImmediate(() => done())
         }
       })
