@@ -14,7 +14,7 @@ repositories
       const toAddresses = await TransactionsRepository.distinct('to', { timestamp: { $gte: fromTimestamp } })
 
       const addressesForUpdate = [...new Set([].concat(fromAddresses, toAddresses))]
-      log(`Got ${addressesForUpdate.length} addresses for update`)
+      log(`Got ${addressesForUpdate.length} addresses for update on period '${period}'`)
 
       const addresses = {}
       if (addressesForUpdate.length) {
@@ -37,8 +37,9 @@ repositories
     const addressesMonthStats = await updateAddressesStatisticForPeriod('month')
 
     const addressesForSave = Object.values(Object.assign({}, addressesDayStats, addressesWeekStats, addressesMonthStats))
-
-    await AddressesRepository.update(addressesForSave, ['address'])
+    if (addressesForSave.length) {
+      await AddressesRepository.update(addressesForSave, ['address'])
+    }
     log(`Updated ${addressesForSave.length} addresses`)
 
     log(`Finish`)
