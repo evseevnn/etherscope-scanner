@@ -51,8 +51,10 @@ class Ethereum extends EventEmitter {
    */
   async getBlockData(blockNumber) {
     // Getting block and transactions data
-    const blockData = await this.web3.eth.getBlock(blockNumber, true)
-    const block = blockData
+    const block = await this.web3.eth.getBlock(blockNumber, true)
+    if (block.extraData.length && block.extraData.startsWith('0x')) {
+      block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
+    }
     const transactions = Array.from(block.transactions)
     let gottedReceipts = 0
     try {
