@@ -57,7 +57,10 @@ repositories
               }
 
               // Add timestamp from block to transactions
-              block.transactions = block.transactions.map(transaction => (transaction.timestamp = block.timestamp))
+              block.transactions = block.transactions.map(transaction => {
+                transaction.timestamp = block.timestamp
+                return transaction
+              })
 
               // Save last transactions
               TransactionsRepository.insert(block.transactions)
