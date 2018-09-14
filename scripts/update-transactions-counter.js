@@ -19,9 +19,13 @@ repositories
       const addresses = []
       if (addressesForUpdate.length) {
         for (let i = 0; i < addressesForUpdate.length; i++) {
-          addresses[i].statistics = { address: addressesForUpdate[i] }
-          addresses[i].statistics[`${period}TxOut`] = await TransactionsRepository.count({ from: addresses[i].address })
-          addresses[i].statistics[`${period}TxIn`] = await TransactionsRepository.count({ to: addresses[i].address })
+          const address = {
+            address: addressesForUpdate[i],
+            statistics: {}
+          }
+          address.statistics[`${period}TxOut`] = await TransactionsRepository.count({ from: address.address })
+          address.statistics[`${period}TxIn`] = await TransactionsRepository.count({ to: address.address })
+          addresses.push(address)
         }
 
         log(`Updated ${addresses.length} addresses for ${period} period`)
