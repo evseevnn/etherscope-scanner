@@ -22,7 +22,7 @@ repositories
     TransactionsRepository
   }) => {
     new TasksPool(NEW_BLOCKS_LISTNER)
-      .connectAsReader('blocks', async ({ blockNumber }, done) => {
+      .connectAsReader('scanner', async ({ blockNumber }, done) => {
         log(`[#${blockNumber}] Start processing block`)
 
         const [ isBlockExist ] = await BlocksReposiroty.find({ number: blockNumber }).limit(1).toArray()
