@@ -39,21 +39,21 @@ repositories
                 const addressesForSave = []
                 for (let i = 0; i < transactionsWithContracts.length; i++) {
                   const transactionWithContract = transactionsWithContracts[i]
-                  // const opcode = ethereum.getContractOpcode(transactionWithContract.receipt.contractAddress)
-                  // const interfaces = ethereum.getContractInterfaces(transactionWithContract.receipt.contractAddress, opcode)
-                  // const data = await ethereum.getContractDataByInterfaces(transactionWithContract.receipt.contractAddress, interfaces)
-                  // log(`[#${blockNumber}][${transactionWithContract.receipt.contractAddress}] interfaces ${interfaces.join(', ')}`)
+                  const opcode = ethereum.getContractOpcode(transactionWithContract.receipt.contractAddress)
+                  const interfaces = ethereum.getContractInterfaces(transactionWithContract.receipt.contractAddress, opcode)
+                  const data = await ethereum.getContractDataByInterfaces(transactionWithContract.receipt.contractAddress, interfaces)
+                  log(`[#${blockNumber}][${transactionWithContract.receipt.contractAddress}] interfaces ${interfaces.join(', ')}`)
                   addressesForSave.push({
-                    // instanceOf: interfaces,
-                    // data,
-                    // opcode,
+                    instanceOf: interfaces,
+                    data,
+                    opcode,
                     address: transactionWithContract.receipt.contractAddress,
                     type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
                     createdAt: new Date(block.timestamp * 1000)
                   })
                 }
 
-                await AddressesRepository.update(await Promise.all(promises), ['address'], true)
+                await AddressesRepository.update(addressesForSave, ['address'], true)
               }
 
               // Add timestamp from block to transactions
