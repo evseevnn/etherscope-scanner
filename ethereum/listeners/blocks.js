@@ -36,22 +36,22 @@ repositories
               const transactionsWithContracts = transactions.filter(transaction => transaction.receipt && transaction.receipt.contractAddress)
               if (transactionsWithContracts.length) {
                 // Save contracts
-                const promises = []
-                transactionsWithContracts.forEach(transaction => {
-                  const opcode = ethereum.getContractOpcode(transaction.receipt.contractAddress)
-                  const interfaces = ethereum.getContractInterfaces(transaction.receipt.contractAddress, opcode)
-                  promises.push(ethereum.getContractDataByInterfaces(transaction.receipt.contractAddress, interfaces).then(data => {
-                    log(`[#${blockNumber}][${transaction.receipt.contractAddress}] interfaces ${interfaces.join(', ')}`)
-                    return {
-                      instanceOf: interfaces,
-                      data,
-                      opcode,
-                      address: transaction.receipt.contractAddress,
-                      type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
-                      createdAt: new Date(block.timestamp * 1000)
-                    }
-                  }))
-                })
+                const addressesForSave = []
+                for (let i = 0; i < transactionsWithContracts.length; i++) {
+                  const transactionWithContract = transactionsWithContracts[i]
+                  // const opcode = ethereum.getContractOpcode(transactionWithContract.receipt.contractAddress)
+                  // const interfaces = ethereum.getContractInterfaces(transactionWithContract.receipt.contractAddress, opcode)
+                  // const data = await ethereum.getContractDataByInterfaces(transactionWithContract.receipt.contractAddress, interfaces)
+                  // log(`[#${blockNumber}][${transactionWithContract.receipt.contractAddress}] interfaces ${interfaces.join(', ')}`)
+                  addressesForSave.push({
+                    // instanceOf: interfaces,
+                    // data,
+                    // opcode,
+                    address: transactionWithContract.receipt.contractAddress,
+                    type: AddressesRepository.ADDRESS_TYPE_CONTRACT,
+                    createdAt: new Date(block.timestamp * 1000)
+                  })
+                }
 
                 await AddressesRepository.update(await Promise.all(promises), ['address'], true)
               }
