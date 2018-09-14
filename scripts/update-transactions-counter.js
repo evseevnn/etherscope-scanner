@@ -16,7 +16,7 @@ repositories
       const addressesForUpdate = [...new Set([].concat(fromAddresses, toAddresses))]
       log(`Got ${addressesForUpdate.length} addresses for update`)
 
-      const addresses = []
+      const addresses = {}
       if (addressesForUpdate.length) {
         for (let i = 0; i < addressesForUpdate.length; i++) {
           const address = {
@@ -25,17 +25,21 @@ repositories
           }
           address.statistics[`${period}TxOut`] = await TransactionsRepository.count({ from: address.address })
           address.statistics[`${period}TxIn`] = await TransactionsRepository.count({ to: address.address })
-          addresses.push(address)
+          addresses[address.address] = address
         }
-
-        log(`Updated ${addresses.length} addresses for ${period} period`)
-        await AddressesRepository.update(addresses, ['address'])
       }
+
+      return addresses
     }
 
-    await updateAddressesStatisticForPeriod('day')
-    await updateAddressesStatisticForPeriod('week')
-    await updateAddressesStatisticForPeriod('month')
+    const addressesDayStats = await updateAddressesStatisticForPeriod('day')
+    const addressesWeekStats = await updateAddressesStatisticForPeriod('week')
+    const addressesMonthStats = await updateAddressesStatisticForPeriod('month')
+
+    const addressesForSave = Object.values(Object.assign({}, addressesDayStats, addressesWeekStats, addressesMonthStats))
+
+    await AddressesRepository.update(addressesForSave, ['address'])
+    log(`Updated ${addressesForSave.length} addresses`)
 
     log(`Finish`)
     process.exit()
