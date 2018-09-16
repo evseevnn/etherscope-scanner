@@ -29,18 +29,16 @@ repositories
         }
       }
 
-      return addresses
+      const forSave = Object.values(addresses)
+      if (forSave.length) {
+        await AddressesRepository.update(forSave, ['address'])
+        log(`Updated ${forSave.length} addresses`)
+      }
     }
 
-    const addressesDayStats = await updateAddressesStatisticForPeriod('day')
-    const addressesWeekStats = await updateAddressesStatisticForPeriod('week')
-    const addressesMonthStats = await updateAddressesStatisticForPeriod('month')
-
-    const addressesForSave = Object.values(Object.assign({}, addressesDayStats, addressesWeekStats, addressesMonthStats))
-    if (addressesForSave.length) {
-      await AddressesRepository.update(addressesForSave, ['address'])
-    }
-    log(`Updated ${addressesForSave.length} addresses`)
+    await updateAddressesStatisticForPeriod('day')
+    await updateAddressesStatisticForPeriod('week')
+    await updateAddressesStatisticForPeriod('month')
 
     log(`Finish`)
     process.exit()
