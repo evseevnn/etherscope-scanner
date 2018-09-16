@@ -38,7 +38,6 @@ class BaseRepository {
       filterBy.forEach(field => {
         if (document[field]) {
           filter[field] = document[field]
-          delete document[field]
         }
       })
       delete document._id

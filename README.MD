@@ -6,6 +6,7 @@ db.createCollection('transactions', { capped: true, size: 53687091200 }) // 50Gb
 ### Indexes
 
 ```
+db.getCollection('interfaces').createIndex({'contractName': 1}, {unique: 1, background: true})
 db.getCollection('addresses').createIndex({'statistics.dayTxIn': 1}, {background: true})
 db.getCollection('addresses').createIndex({'statistics.dayTxOut': 1}, {background: true})
 db.getCollection('addresses').createIndex({'statistics.weekTxIn': 1}, {background: true})
