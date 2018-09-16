@@ -26,8 +26,8 @@ repositories
             }
           }
 
-          addresses[addressesForUpdate[i]].statistics[`${period}TxOut`] = await TransactionsRepository.count({ from: address.address })
-          addresses[addressesForUpdate[i]].statistics[`${period}TxIn`] = await TransactionsRepository.count({ to: address.address })
+          addresses[addressesForUpdate[i]].statistics[`${period}TxOut`] = await TransactionsRepository.count({ from: addresses[addressesForUpdate[i]].address })
+          addresses[addressesForUpdate[i]].statistics[`${period}TxIn`] = await TransactionsRepository.count({ to: addresses[addressesForUpdate[i]].address })
         }
       }
     }
