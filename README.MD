@@ -13,6 +13,7 @@ db.getCollection('addresses').createIndex({'statistics.weekTxIn': 1}, {backgroun
 db.getCollection('addresses').createIndex({'statistics.weekTxOut': 1}, {background: true})
 db.getCollection('addresses').createIndex({'statistics.monthTxIn': 1}, {background: true})
 db.getCollection('addresses').createIndex({'statistics.monthTxOut': 1}, {background: true})
+db.getCollection('addresses').createIndex({'capitalization': 1}, {background: true})
 db.getCollection('addresses').createIndex({'data.symbol': 1}, {background: true})
 db.getCollection('addresses').createIndex({type: 1}, {background: true})
 db.getCollection('addresses').createIndex({address: 1}, {unique : true, background: true})
