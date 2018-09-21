@@ -12,7 +12,7 @@ apps:
     autorestart: true
     args: --expose-gc
 
-  - script: ./ethereum/listeners/blocks/contracts.js
+  - script: ./ethereum/listeners/blocks/processing.js
     name: transactions-listner
     instances: 3
     exec_mode: fork
