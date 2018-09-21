@@ -2,7 +2,7 @@ const BaseRepository = require('../BaseRepository')
 
 class AddressesRepository extends BaseRepository {
   get name() {
-    return 'addresses'
+    return 'contracts'
   }
 }
 

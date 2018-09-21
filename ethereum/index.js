@@ -96,10 +96,10 @@ class Ethereum extends EventEmitter {
   /**
    * Return all balances of addresses
    * @param {Array} addresses
-   * @return {Promise<Map>}
+   * @return {Promise<Object>}
    */
   async getBalances(addresses) {
-    const addressesBalances = new Map()
+    const addressesBalances = {}
     // Getting operations data
     const batch = new this.web3.BatchRequest()
     addresses = Array.from(new Set(addresses))
@@ -108,7 +108,7 @@ class Ethereum extends EventEmitter {
         if (error) {
           throw new Error(error)
         }
-        addressesBalances.set(address, data)
+        addressesBalances[address] = data
       }))
     })
     batch.execute()
@@ -117,7 +117,7 @@ class Ethereum extends EventEmitter {
     return new Promise((resolve, reject) => {
       function wait() {
         setImmediate(() => {
-          if (addressesBalances.size < addresses.length) {
+          if (Object.keys(addressesBalances).length < addresses.length) {
             wait()
           } else {
             resolve(addressesBalances)

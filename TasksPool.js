@@ -19,7 +19,7 @@ const readerOptions = {
   heartbeatInterval: +process.env.NSQ_READER_HEARTBEAT_INTERVAL || 60,
   maxBackoffDuration: +process.env.NSQ_READER_MAX_BACKOFF_DURATION || 128,
   maxAttempts: +process.env.NSQ_READER_MAX_ATTEMPTS || 0,
-  requeueDelay: +process.env.NSQ_READER_REQUEUE_DELAY || 90,
+  requeueDelay: +process.env.NSQ_READER_REQUEUE_DELAY || 30000,
   nsqdTCPAddresses: process.env.NSQ_READER_NSQD_TCP_ADDRESSES.split(','),
   lookupdHTTPAddresses: process.env.NSQ_READER_LOOKUPD_HTTP_ADDRESSES.split(','),
   lookupdPollInterval: +process.env.NSQ_READER_LOOKUPD_POLL_INTERVAL || 60,
@@ -89,11 +89,11 @@ class TasksPool {
 
             touchTimeout = setTimeout(touch, msg.timeUntilTimeout() - 1000)
 
-            callback(JSON.parse(msg.body.toString()), () => {
+            callback(JSON.parse(msg.body.toString()), (isFinish = true) => {
               clearTimeout(touchTimeout)
               // Collect garbage
               global.gc && global.gc()
-              msg.finish()
+              isFinish && msg.finish()
             })
           })
   }

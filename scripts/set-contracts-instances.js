@@ -11,7 +11,7 @@ repositories
   .connect()
   .then(async ({ AddressesRepository }) => {
     async function getNextAddresses(lastId = null) {
-      let search = { type: AddressesRepository.ADDRESS_TYPE_CONTRACT, instanceOf: { $exists: false } }
+      let search = { type: 'contract', instanceOf: { $exists: false } }
 
       if (lastId) {
         search = Object.assign(search, { _id: { $gt: lastId } })
