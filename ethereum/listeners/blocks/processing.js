@@ -30,33 +30,37 @@ repositories
           let [ transaction ] = await TransactionsRepository.find({ hash }).toArray()
           log(`[#${hash}] Processing for get contracts`)
 
-          // Contract processing
-          const contractAddresses = new Set()
-          if (transaction.receipt) {
-            if (transaction.receipt.contractAddress) {
-              contractAddresses.add(transaction.receipt.contractAddress)
+          if (transaction) {
+            // Contract processing
+            const contractAddresses = new Set()
+            if (transaction.receipt) {
+              if (transaction.receipt.contractAddress) {
+                contractAddresses.add(transaction.receipt.contractAddress)
+              }
+
+              if (transaction.receipt.logs && transaction.receipt.logs.length) {
+                if (typeof transaction.to === 'object' && transaction.to.address) {
+                  contractAddresses.add(transaction.to.address)
+                } else {
+                  contractAddresses.add(transaction.to)
+                }
+                transaction.receipt.logs.forEach(log => contractAddresses.add(log.address))
+              }
             }
 
-            if (transaction.receipt.logs && transaction.receipt.logs.length) {
-              if (typeof transaction.to === 'object' && transaction.to.address) {
-                contractAddresses.add(transaction.to.address)
-              } else {
-                contractAddresses.add(transaction.to)
-              }
-              transaction.receipt.logs.forEach(log => contractAddresses.add(log.address))
-            }
+            await contractsProcessing({ addresses: Array.from(contractAddresses), AddressesRepository })
+
+            // re-decorate transaction
+            const decoratedTransaction = await transactionAfterSaveDecorator(transaction, InterfacesRepository, AddressesRepository)
+            transaction = Object.assign(transaction, decoratedTransaction)
+
+            // Save last transactions
+            TransactionsRepository.update(transaction, ['hash'])
+            log(`[#${hash}] Done`)
+          } else {
+            log(`[#${hash}] Not found. Transaction can be old`)
           }
 
-          await contractsProcessing({ addresses: Array.from(contractAddresses), AddressesRepository })
-
-          // re-decorate transaction
-          const decoratedTransaction = await transactionAfterSaveDecorator(transaction, InterfacesRepository, AddressesRepository)
-          transaction = Object.assign(transaction, decoratedTransaction)
-
-          // Save last transactions
-          TransactionsRepository.update(transaction, ['hash'])
-
-          log(`[#${hash}] Done`)
           setImmediate(() => done())
         } catch (error) {
           log(`[#${hash}] processing error`, error)
