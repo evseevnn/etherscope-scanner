@@ -8,11 +8,11 @@ repositories
   .then(async ({ AddressesRepository, TransactionsRepository }) => {
     const addresses = {}
     async function updateAddressesStatisticForPeriod(period) {
-      const fromTimestamp = moment().subtract(1, period).unix()
+      const fromDate = moment().subtract(1, period).toDate()
 
       // Getting active addresses
-      const fromAddresses = await TransactionsRepository.distinct('from', { timestamp: { $gte: fromTimestamp } })
-      const toAddresses = await TransactionsRepository.distinct('to', { timestamp: { $gte: fromTimestamp } })
+      const fromAddresses = await TransactionsRepository.distinct('from', { createdAt: { $gte: fromDate } })
+      const toAddresses = await TransactionsRepository.distinct('to', { createdAt: { $gte: fromDate } })
 
       const addressesForUpdate = [...new Set([].concat(fromAddresses, toAddresses))]
       log(`Got ${addressesForUpdate.length} addresses for update on period '${period}'`)

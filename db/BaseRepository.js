@@ -33,6 +33,9 @@ class BaseRepository {
     if (!Array.isArray(documents)) {
       documents = [documents]
     }
+    if (!documents.length) {
+      return []
+    }
     const operations = documents.map(document => {
       const filter = {}
       filterBy.forEach(field => {
