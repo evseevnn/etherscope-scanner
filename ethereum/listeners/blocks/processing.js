@@ -89,7 +89,7 @@ repositories
               }
             }
 
-            decoratedAddresses = decoratedAddresses.filter(address => address.balance)
+            decoratedAddresses = decoratedAddresses.filter(address => +address.balance > 0)
             if (decoratedAddresses.length) {
               await AddressesRepository.update(decoratedAddresses, [ 'address' ], true)
               log(`[${hash}] Balances saved for addresses: ${decoratedAddresses.map(address => address.address).join(', ')}`)
