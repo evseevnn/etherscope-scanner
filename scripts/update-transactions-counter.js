@@ -11,8 +11,8 @@ repositories
       const fromDate = moment().subtract(1, period).toDate()
 
       // Getting active addresses
-      const fromAddresses = await TransactionsRepository.distinct('from', { createdAt: { $gte: fromDate } })
-      const toAddresses = await TransactionsRepository.distinct('to', { createdAt: { $gte: fromDate } })
+      const fromAddresses = await TransactionsRepository.distinct('from.address', { createdAt: { $gte: fromDate } })
+      const toAddresses = (await TransactionsRepository.distinct('to.address', { createdAt: { $gte: fromDate } }))
 
       const addressesForUpdate = [...new Set([].concat(fromAddresses, toAddresses))]
       log(`Got ${addressesForUpdate.length} addresses for update on period '${period}'`)
@@ -26,8 +26,8 @@ repositories
             }
           }
 
-          addresses[addressesForUpdate[i]].statistics[`${period}TxOut`] = await TransactionsRepository.count({ from: addresses[addressesForUpdate[i]].address })
-          addresses[addressesForUpdate[i]].statistics[`${period}TxIn`] = await TransactionsRepository.count({ to: addresses[addressesForUpdate[i]].address })
+          addresses[addressesForUpdate[i]].statistics[`${period}TxOut`] = await TransactionsRepository.count({ 'from.address': addresses[addressesForUpdate[i]].address })
+          addresses[addressesForUpdate[i]].statistics[`${period}TxIn`] = await TransactionsRepository.count({ 'to.address': addresses[addressesForUpdate[i]].address })
         }
       }
     }
