@@ -34,7 +34,7 @@ module.exports = (logs, interfaces) => {
           })
           logger(`Event ${events[eventHash].name}`)
         } catch (error) {
-          logger('Cannot decode events', error)
+          logger('Cannot decode events', error, {inputs: event.inputs, data: log.data, topics: log.topics})
         }
       } else {
         logger(`Unknown event ${eventHash}`)
