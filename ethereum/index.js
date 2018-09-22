@@ -99,7 +99,7 @@ class Ethereum extends EventEmitter {
    * @return {Promise<Object>}
    */
   async getBalances(addresses) {
-    const addressesBalances = {}
+    const addressesBalances = []
     // Getting operations data
     const batch = new this.web3.BatchRequest()
     addresses = Array.from(new Set(addresses))
@@ -108,7 +108,7 @@ class Ethereum extends EventEmitter {
         if (error) {
           throw new Error(error)
         }
-        addressesBalances[address] = data
+        addressesBalances.push({ address, balance: this.web3.utils.fromWei(data.toString(10), 'ether') })
       }))
     })
     batch.execute()
@@ -117,7 +117,7 @@ class Ethereum extends EventEmitter {
     return new Promise((resolve, reject) => {
       function wait() {
         setImmediate(() => {
-          if (Object.keys(addressesBalances).length < addresses.length) {
+          if (addressesBalances.length < addresses.length) {
             wait()
           } else {
             resolve(addressesBalances)
@@ -158,6 +158,23 @@ class Ethereum extends EventEmitter {
       })
       return result
     })
+  }
+
+  /**
+   * return contract entity
+   * @param {String} contractAddress
+   * @param {Array} interfaces
+   */
+  getContract(contractAddress, interfaces) {
+    let abi = []
+    interfaces.forEach(interfaceName => {
+      if (!contractsInterfaces[interfaceName]) {
+        log(`Interface with name ${interfaceName} is not found`)
+      } else {
+        abi = abi.concat(contractsInterfaces[interfaceName].abi)
+      }
+    })
+    return new this.web3.eth.Contract(abi, contractAddress)
   }
 
   /**

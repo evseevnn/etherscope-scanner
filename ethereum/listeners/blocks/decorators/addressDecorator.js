@@ -8,8 +8,8 @@ module.exports = async (address, AddressesRepository, lightMode = false) => {
     if (addressData) {
       switch (addressData.type) {
         case 'contract':
-          const { address, type, data, instanceOf } = addressData
-          return { address, type, data, instanceOf }
+          const { address, type, data, instanceOf, balance = 0, tokens = {} } = addressData
+          return { address, type, data, instanceOf, balance, tokens }
 
         case 'address':
           return addressData
@@ -21,5 +21,5 @@ module.exports = async (address, AddressesRepository, lightMode = false) => {
   }
 
   // if record not exist
-  return { address, type: 'address' }
+  return { address, type: 'address', balance: 0, tokens: {} }
 }

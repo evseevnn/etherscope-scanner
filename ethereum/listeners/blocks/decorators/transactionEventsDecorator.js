@@ -22,7 +22,7 @@ module.exports = (logs, interfaces) => {
 
       const eventHash = log.topics.shift()
       const event = events[eventHash]
-      if (event) {
+      if (event && log.data !== '0x') {
         const data = Object.assign({}, ABICoder.decodeLog(event.inputs, log.data, log.topics))
         decoratedEvents.push({
           index: log.logIndex,
