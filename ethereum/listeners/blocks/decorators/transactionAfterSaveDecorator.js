@@ -1,7 +1,6 @@
 const addressDecorator = require('./addressDecorator')
 const transactionInputDecorator = require('./transactionInputDecorator')
 const transactionEventsDecorator = require('./transactionEventsDecorator')
-const web3 = require('web3')
 
 module.exports = async (transaction, InterfacesRepository, AddressesRepository) => {
   let decoratedTransaction = {}
@@ -15,14 +14,6 @@ module.exports = async (transaction, InterfacesRepository, AddressesRepository) 
     }
 
     decoratedTransaction.to = await addressDecorator(decoratedTransaction.to, AddressesRepository)
-    if (transaction.receipt && transaction.receipt.gasUsed) {
-      decoratedTransaction.gasUsed = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.gasPrice)), 'ether')
-    }
-
-    if (transaction.receipt && transaction.receipt.cumulativeGasUsed) {
-      decoratedTransaction.cumulativeGasUsed = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.receipt.cumulativeGasUsed)), 'ether')
-    }
-
     let eventNameForCollectAmount = 'Transfer'
 
     let logs = []

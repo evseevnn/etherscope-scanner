@@ -11,7 +11,6 @@ module.exports = async (transaction, AddressesRepository) => {
       from: await addressDecorator(transaction.from, AddressesRepository, true),
       to: transaction.to || (transaction.receipt && transaction.receipt.contractAddress),
       gas: transaction.gas,
-      gasPrice: web3.utils.fromWei(transaction.gasPrice, 'ether'),
       value: web3.utils.fromWei(transaction.value, 'ether'),
       method: null,
       tokensAmount: [],
@@ -20,12 +19,14 @@ module.exports = async (transaction, AddressesRepository) => {
 
     decoratedTransaction.to = await addressDecorator(decoratedTransaction.to, AddressesRepository, true)
     if (transaction.receipt && transaction.receipt.gasUsed) {
-      decoratedTransaction.gasUsed = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.receipt.gasUsed)), 'ether')
+      decoratedTransaction.fee = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.gasPrice)), 'ether')
     }
 
     if (transaction.receipt && transaction.receipt.cumulativeGasUsed) {
       decoratedTransaction.cumulativeGasUsed = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.receipt.cumulativeGasUsed)), 'ether')
     }
+
+    decoratedTransaction.gasPrice = web3.utils.fromWei(transaction.gasPrice, 'ether')
 
     // If transaction has logs that mean what reciver is unknown contract
     if (transaction.receipt && transaction.receipt.logs && transaction.receipt.logs.length) {
