@@ -17,9 +17,10 @@ module.exports = async (transaction, AddressesRepository) => {
       events: []
     }
     // Status before Byzantium parity return always false, so need use rules for solve trouble
-    if (transaction.receipt && !decoratedTransaction.status) {
+    if (transaction.blockNumber < 4370000 && transaction.receipt && !decoratedTransaction.status) {
       decoratedTransaction.status = ((transaction.receipt.gasUsed === 21000) || (transaction.receipt.gasUsed < transaction.gas) || (transaction.receipt.logs && transaction.receipt.logs.length))
     }
+
     decoratedTransaction.to = await addressDecorator(decoratedTransaction.to, AddressesRepository, true)
     if (transaction.receipt && transaction.receipt.gasUsed) {
       decoratedTransaction.fee = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.gasPrice)), 'ether')
