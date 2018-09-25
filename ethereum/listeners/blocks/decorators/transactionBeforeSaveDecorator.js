@@ -40,8 +40,6 @@ module.exports = async (transaction, AddressesRepository) => {
         name: 'constructor'
       }
     }
-
-    decoratedTransaction.tokensAmount = {}
   }
 
   return decoratedTransaction
