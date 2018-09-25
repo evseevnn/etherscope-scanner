@@ -16,7 +16,7 @@ module.exports = async (transaction, InterfacesRepository, AddressesRepository) 
 
     decoratedTransaction.to = await addressDecorator(decoratedTransaction.to, AddressesRepository)
     if (transaction.receipt && transaction.receipt.gasUsed) {
-      decoratedTransaction.gasUsed = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.receipt.gasUsed)), 'ether')
+      decoratedTransaction.gasUsed = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.gasPrice)), 'ether')
     }
 
     if (transaction.receipt && transaction.receipt.cumulativeGasUsed) {
