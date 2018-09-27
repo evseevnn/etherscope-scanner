@@ -135,7 +135,12 @@ class Ethereum extends EventEmitter {
    */
   getContractOpcode(address) {
     try {
-      return exec.execSync(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`).toString()
+      const opcode = exec.execSync(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`).toString()
+      if (opcode.startsWith('Received an empty response')) {
+        log(`Address ${address} is not a contract`)
+        return null
+      }
+      return opcode
     } catch (error) {
       log(error.toString())
       return null

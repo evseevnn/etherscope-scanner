@@ -8,7 +8,7 @@ module.exports = async (transaction, AddressesRepository) => {
       hash: transaction.hash,
       blockNumber: transaction.blockNumber,
       status: transaction.receipt && transaction.receipt.status,
-      from: await addressDecorator(transaction.from, AddressesRepository, true),
+      from: await addressDecorator(transaction.from, AddressesRepository),
       to: transaction.to || (transaction.receipt && transaction.receipt.contractAddress),
       gas: transaction.gas,
       value: web3.utils.fromWei(transaction.value, 'ether'),
@@ -21,7 +21,7 @@ module.exports = async (transaction, AddressesRepository) => {
       decoratedTransaction.status = ((transaction.receipt.gasUsed === 21000) || (transaction.receipt.gasUsed < transaction.gas) || (transaction.receipt.logs && transaction.receipt.logs.length))
     }
 
-    decoratedTransaction.to = await addressDecorator(decoratedTransaction.to, AddressesRepository, true)
+    decoratedTransaction.to = await addressDecorator(decoratedTransaction.to, AddressesRepository)
     if (transaction.receipt && transaction.receipt.gasUsed) {
       decoratedTransaction.fee = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.gasPrice)), 'ether')
     }

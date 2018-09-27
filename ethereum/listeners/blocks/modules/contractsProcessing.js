@@ -17,19 +17,21 @@ module.exports = async ({ addresses, AddressesRepository }) => {
       for (let i = 0; i < addresses.length; i++) {
         const address = addresses[i]
         const opcode = ethereum.getContractOpcode(address)
-        const interfaces = ethereum.getContractInterfaces(address, opcode)
-        const data = await ethereum.getContractDataByInterfaces(address, interfaces)
-        if (data && data.totalSupply && data.decimals) {
-          data.totalSupply = (data.totalSupply / (Math.pow(10, data.decimals) || 1).toFixed(8).replace(/\.?0+$/, ''))
+        if (opcode) {
+          const interfaces = ethereum.getContractInterfaces(address, opcode)
+          const data = await ethereum.getContractDataByInterfaces(address, interfaces)
+          if (data && data.totalSupply && data.decimals) {
+            data.totalSupply = (data.totalSupply / (Math.pow(10, data.decimals) || 1).toFixed(8).replace(/\.?0+$/, ''))
+          }
+          log(`[${address}]${interfaces.length ? ` interfaces: ${interfaces.join(', ')}` : ' Unknown contract type'}`)
+          addressesForSave.push({
+            instanceOf: interfaces,
+            data,
+            opcode,
+            address,
+            type: 'contract'
+          })
         }
-        log(`[${address}]${interfaces.length ? ` interfaces: ${interfaces.join(', ')}` : ' Unknown contract type'}`)
-        addressesForSave.push({
-          instanceOf: interfaces,
-          data,
-          opcode,
-          address,
-          type: 'contract'
-        })
       }
 
       await AddressesRepository.update(addressesForSave, ['address'], true)

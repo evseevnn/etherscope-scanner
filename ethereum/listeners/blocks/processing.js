@@ -36,20 +36,25 @@ repositories
           if (transaction) {
             // Contract processing
             const contractAddresses = new Set()
-            if (transaction.receipt) {
-              if (transaction.receipt.contractAddress) {
-                contractAddresses.add(transaction.receipt.contractAddress)
-              }
-
-              if (transaction.receipt.logs && transaction.receipt.logs.length) {
-                if (typeof transaction.to === 'object' && transaction.to.address) {
-                  contractAddresses.add(transaction.to.address)
-                } else {
-                  contractAddresses.add(transaction.to)
-                }
-                transaction.receipt.logs.forEach(log => contractAddresses.add(log.address))
-              }
+            if (transaction.receipt.contractAddress) {
+              contractAddresses.add(transaction.receipt.contractAddress)
             }
+            // from
+            if (typeof transaction.from === 'object' && transaction.from.address) {
+              contractAddresses.add(transaction.from.address)
+            } else {
+              contractAddresses.add(transaction.from)
+            }
+            // to
+            if (typeof transaction.to === 'object' && transaction.to.address) {
+              contractAddresses.add(transaction.to.address)
+            } else {
+              contractAddresses.add(transaction.to)
+            }
+            // logs addresses
+            transaction.receipt.logs.forEach(log => {
+              contractAddresses.add(log.address)
+            })
 
             await contractsProcessing({ addresses: Array.from(contractAddresses), AddressesRepository })
 

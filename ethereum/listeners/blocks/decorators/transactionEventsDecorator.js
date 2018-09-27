@@ -1,8 +1,9 @@
 const { cleanWeb4DecodedFields } = require('../../../helpers')
 const ABICoder = require('web3-eth-abi')
 const logger = require('debug')('decorators:transaction-events-decorator')
+const addressDecorator = require('./addressDecorator')
 
-module.exports = (logs, interfaces) => {
+module.exports = async (logs, interfaces, AddressesRepository) => {
   const decoratedEvents = []
   for (let i = 0; i < logs.length; i++) {
     const log = logs[i]
@@ -25,12 +26,29 @@ module.exports = (logs, interfaces) => {
       if (event && log.data !== '0x') {
         try {
           const data = Object.assign({}, ABICoder.decodeLog(event.inputs, log.data, log.topics))
+          const clearEventData = cleanWeb4DecodedFields(data, true)
+          if (['Transfer', 'Approval'].includes(events[eventHash].name) && clearEventData && clearEventData.value) {
+            clearEventData.value = (clearEventData.value / (Math.pow(10, log.address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+          }
+          if (clearEventData.from) {
+            clearEventData.from = await addressDecorator(clearEventData.from, AddressesRepository)
+          }
+          if (clearEventData.to) {
+            clearEventData.to = await addressDecorator(clearEventData.to, AddressesRepository)
+          }
+          console.log({
+            index: log.logIndex,
+            address: log.address,
+            name: events[eventHash].name,
+            code: events[eventHash]._signature,
+            data: clearEventData
+          })
           decoratedEvents.push({
             index: log.logIndex,
             address: log.address,
             name: events[eventHash].name,
             code: events[eventHash]._signature,
-            data: cleanWeb4DecodedFields(data, true)
+            data: clearEventData
           })
           logger(`Event ${events[eventHash].name}`)
         } catch (error) {

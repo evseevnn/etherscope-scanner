@@ -5,6 +5,7 @@ const { NEW_BLOCKS_LISTNER, SAVED_TRANSACTIONS_LISTNER } = require('..')
 const Ethereum = require('../..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 const transactionBeforeSaveDecorator = require('./decorators/transactionBeforeSaveDecorator')
+const transactionAfterSaveDecorator = require('./decorators/transactionAfterSaveDecorator')
 const repositories = require('../../../db/repositories')
 
 // @FIXIT: PLS
@@ -24,6 +25,7 @@ Promise.all([
 .then(([{
   AddressesRepository,
   BlocksReposiroty,
+  InterfacesRepository,
   TransactionsRepository
 }]) => {
   new TasksPool(NEW_BLOCKS_LISTNER)
@@ -42,10 +44,12 @@ Promise.all([
         if (transactions.length) {
           // Decorate transactions
           for (let i = 0; i < transactions.length; i++) {
-            const decoratedTransaction = await transactionBeforeSaveDecorator(transactions[i], AddressesRepository)
+            const decoratedBeforeTransaction = await transactionBeforeSaveDecorator(transactions[i], AddressesRepository)
+            const decoratedAfterTransaction = await transactionAfterSaveDecorator(transactions[i], InterfacesRepository, AddressesRepository, true)
             transactions[i] = Object.assign(
               transactions[i],
-              decoratedTransaction,
+              decoratedBeforeTransaction,
+              decoratedAfterTransaction,
               {
                 addedAt: new Date(),
                 createdAt: new Date(block.timestamp * 1000)

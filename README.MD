@@ -20,9 +20,10 @@ db.getCollection('transactions').createIndex({'from.address': 1}, {background: t
 db.getCollection('transactions').createIndex({'to.address': 1}, {background: true})
 db.getCollection('transactions').createIndex({'events.address.address': 1}, {background: true})
 db.getCollection('transactions').createIndex({'events.name': 1}, {background: true})
-db.getCollection('transactions').createIndex({'events.data.from': 1}, {background: true})
-db.getCollection('transactions').createIndex({'events.data.to': 1}, {background: true})
+db.getCollection('transactions').createIndex({'events.data.from.address': 1}, {background: true})
+db.getCollection('transactions').createIndex({'events.data.to.address': 1}, {background: true})
 db.getCollection('transactions').createIndex({hash: 1}, {unique: 1, background: true})
 db.getCollection('transactions').createIndex({blockNumber: -1}, {background: true})
+db.getCollection('transactions').createIndex({blockNumber: -1, transactionIndex: -1}, {background: true})
 db.getCollection('transactions').createIndex({createdAt: -1}, {background: true, expireAfterSeconds: 2678400, partialFilterExpression: { processed: true }})
 ```
