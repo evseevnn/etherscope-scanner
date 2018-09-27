@@ -36,13 +36,6 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
           if (clearEventData.to) {
             clearEventData.to = await addressDecorator(clearEventData.to, AddressesRepository)
           }
-          console.log({
-            index: log.logIndex,
-            address: log.address,
-            name: events[eventHash].name,
-            code: events[eventHash]._signature,
-            data: clearEventData
-          })
           decoratedEvents.push({
             index: log.logIndex,
             address: log.address,
