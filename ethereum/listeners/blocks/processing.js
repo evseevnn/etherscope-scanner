@@ -81,8 +81,8 @@ repositories
                 ) {
                 const contract = ethereum.getContract(event.address.address, event.address.instanceOf)
                 const [ fromAddressBalance, toAddressBalance ] = await Promise.all([
-                  contract.methods.balanceOf(event.data.from).call(),
-                  contract.methods.balanceOf(event.data.to).call()
+                  contract.methods.balanceOf(event.data.from.address).call(),
+                  contract.methods.balanceOf(event.data.to.address).call()
                 ])
                 const fromAddress = await addressDecorator(event.data.from, AddressesRepository)
                 fromAddress.tokens = Object.assign(
