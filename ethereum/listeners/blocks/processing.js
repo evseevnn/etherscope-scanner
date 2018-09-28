@@ -85,16 +85,33 @@ repositories
                   contract.methods.balanceOf(event.data.to).call()
                 ])
                 const fromAddress = await addressDecorator(event.data.from, AddressesRepository)
-                fromAddress.tokens = Object.assign(fromAddress.tokens, { [event.address.address]: (fromAddressBalance / (Math.pow(10, event.address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '') })
+                fromAddress.tokens = Object.assign(
+                  fromAddress.tokens,
+                  {
+                    [event.address.address]: {
+                      address: event.address.address,
+                      data: event.address.data,
+                      value: (fromAddressBalance / (Math.pow(10, event.address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+                    }
+                  }
+                )
                 decoratedAddresses.push(fromAddress)
 
                 const toAddress = await addressDecorator(event.data.to, AddressesRepository)
-                toAddress.tokens = Object.assign(toAddress.tokens, { [event.address.address]: (toAddressBalance / (Math.pow(10, event.address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '') })
+                toAddress.tokens = Object.assign(
+                  toAddress.tokens,
+                  {
+                    [event.address.address]: {
+                      address: event.address.address,
+                      data: event.address.data,
+                      value: (toAddressBalance / (Math.pow(10, event.address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+                    }
+                  }
+                )
                 decoratedAddresses.push(toAddress)
               }
             }
 
-            decoratedAddresses = [...new Set(decoratedAddresses)].filter(address => +address.balance > 0)
             if (decoratedAddresses.length) {
               await AddressesRepository.update(decoratedAddresses, [ 'address' ], true)
               log(`[${hash}] Balances saved for addresses: ${decoratedAddresses.map(address => address.address).join(', ')}`)
