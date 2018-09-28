@@ -29,20 +29,6 @@ module.exports = async (transaction, InterfacesRepository, AddressesRepository, 
           throw new Error(`Contract ${decoratedTransaction.to.address} not found`)
         }
       }
-
-      // decorate all logs addresses
-      for (let logIndex = 0; logIndex < logs.length; logIndex++) {
-        logs[logIndex].address = await addressDecorator(logs[logIndex].address, AddressesRepository)
-        if (logs[logIndex].address.type !== 'contract') {
-          if (forceContractExist) {
-            logs[logIndex].address.type = 'contract'
-          } else {
-            // We have logs, so that mean it's contract, but we dont know how to read events of him
-            // So, we just stop processing (nsq will start process again later, it's can help in case what we'll get it later)
-            throw new Error(`Contract ${logs[logIndex].address.address} not found`)
-          }
-        }
-      }
     }
 
     // if contract just created set method

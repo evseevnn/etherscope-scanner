@@ -8,6 +8,9 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
   for (let i = 0; i < logs.length; i++) {
     const log = logs[i]
 
+    // decorate log addresses
+    log.address = await addressDecorator(log.address, AddressesRepository)
+
     // Prepare contracts data
     const instanceOf = log.address && log.address.instanceOf
     if (instanceOf) {
