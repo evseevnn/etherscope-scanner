@@ -6,6 +6,8 @@ const EthereumListners = require('./ethereum/listeners')
 const TasksPool = require('./TasksPool')
 const repositories = require('./db/repositories')
 
+const MAX_BLOCKS_PER_TIME = 10000
+
 // Connect to repositories
 repositories
   .connect()
@@ -40,11 +42,18 @@ repositories
         ethereum
           .on('blocks', ({ from, to }) => {
             let cursor = from
-            for (let i = 0; cursor < to; i++) {
-              log(`Send to processing block #${cursor}`)
-              setImmediate(() => blocksPool.send({ blockNumber: cursor }))
-              cursor++
+            function sendBlocks() {
+              for (let i = 0; cursor < to && i < MAX_BLOCKS_PER_TIME; i++) {
+                log(`Send to processing block #${cursor}`)
+                blocksPool.send({ blockNumber: cursor })
+                cursor++
+              }
+              if (cursor < to) {
+                setTimeout(() => sendBlocks(), 1000)
+              }
             }
+
+            sendBlocks()
           })
       })
   })
