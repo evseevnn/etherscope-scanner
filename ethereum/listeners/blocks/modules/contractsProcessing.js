@@ -31,6 +31,13 @@ module.exports = async ({ addresses, AddressesRepository }) => {
             address,
             type: 'contract'
           })
+        } else {
+          addressesForSave.push({
+            address,
+            type: 'address',
+            balance: 0,
+            tokens: {}
+          })
         }
       }
 
