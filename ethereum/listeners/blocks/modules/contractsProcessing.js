@@ -34,7 +34,9 @@ module.exports = async ({ addresses, AddressesRepository }) => {
         }
       }
 
-      await AddressesRepository.update(addressesForSave, ['address'], true)
+      if (addressesForSave.length) {
+        await AddressesRepository.update(addressesForSave, ['address'], true)
+      }
     }
   }
 }
