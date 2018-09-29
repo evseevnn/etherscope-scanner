@@ -56,6 +56,7 @@ repositories
               contractAddresses.add(log.address)
             })
 
+            log(`[${transaction.hash}] Addresses for checking: `, Array.from(contractAddresses))
             await contractsProcessing({ addresses: Array.from(contractAddresses), AddressesRepository })
 
             // re-decorate transaction
