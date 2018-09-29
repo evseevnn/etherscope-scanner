@@ -23,6 +23,7 @@ module.exports = async ({ addresses, AddressesRepository }) => {
           if (data && data.totalSupply && data.decimals) {
             data.totalSupply = (data.totalSupply / (Math.pow(10, data.decimals) || 1).toFixed(8).replace(/\.?0+$/, ''))
           }
+          console.log(address)
           log(`[${address}]${interfaces.length ? ` interfaces: ${interfaces.join(', ')}` : ' Unknown contract type'}`)
           addressesForSave.push({
             instanceOf: interfaces,
