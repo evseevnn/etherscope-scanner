@@ -9,7 +9,6 @@ module.exports = async (transaction, InterfacesRepository, AddressesRepository, 
       from: await addressDecorator(transaction.from, AddressesRepository),
       to: transaction.to || (transaction.receipt && transaction.receipt.contractAddress),
       method: null,
-      tokensAmount: [],
       events: []
     }
 
