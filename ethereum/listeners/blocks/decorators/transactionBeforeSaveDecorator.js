@@ -13,7 +13,6 @@ module.exports = async (transaction, AddressesRepository) => {
       gas: transaction.gas,
       value: web3.utils.fromWei(transaction.value, 'ether'),
       method: null,
-      tokensAmount: [],
       events: []
     }
     // Status before Byzantium parity return always false, so need use rules for solve trouble

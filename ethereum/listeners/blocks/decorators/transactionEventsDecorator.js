@@ -9,10 +9,10 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
     const log = logs[i]
 
     // decorate log addresses
-    log.address = await addressDecorator(log.address, AddressesRepository)
-    if (log.address.type === 'contract') {
+    const address = await addressDecorator(log.address, AddressesRepository)
+    if (address.type === 'contract') {
       // Prepare contracts data
-      const instanceOf = log.address && log.address.instanceOf
+      const instanceOf = address.instanceOf
       if (instanceOf) {
         const events = {}
         interfaces.forEach(interfaceData => {
@@ -31,7 +31,7 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
             const data = Object.assign({}, ABICoder.decodeLog(event.inputs, log.data, log.topics))
             const clearEventData = cleanWeb4DecodedFields(data, true)
             if (['Transfer', 'Approval'].includes(events[eventHash].name) && clearEventData && clearEventData.value) {
-              clearEventData.value = (clearEventData.value / (Math.pow(10, log.address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+              clearEventData.value = (clearEventData.value / (Math.pow(10, address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
             }
             if (clearEventData.from) {
               clearEventData.from = await addressDecorator(clearEventData.from, AddressesRepository)
@@ -41,7 +41,7 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
             }
             decoratedEvents.push({
               index: log.logIndex,
-              address: log.address,
+              address,
               name: events[eventHash].name,
               code: events[eventHash]._signature,
               data: clearEventData
@@ -54,7 +54,7 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
           logger(`Unknown event ${eventHash}`)
         }
       } else {
-        logger(`Unknown event on contract without instanceOf`, log.address)
+        logger(`Unknown event on contract without instanceOf`, address)
       }
     }
   }
