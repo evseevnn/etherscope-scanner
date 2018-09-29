@@ -8,7 +8,7 @@ const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 module.exports = async ({ addresses, AddressesRepository }) => {
   if (addresses.length) {
     // Get get exists contracts
-    const existContractsAddresses = (await AddressesRepository.find({ address: { $in: addresses }, type: 'contract' }).toArray()).map(contract => contract.address)
+    const existContractsAddresses = (await AddressesRepository.find({ address: { $in: addresses } }).toArray()).map(contract => contract.address)
     addresses = addresses.filter(address => !existContractsAddresses.includes(address))
 
     if (addresses.length) {
