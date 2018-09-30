@@ -2,7 +2,7 @@
 require('dotenv').load()
 const log = require('debug')('scanner')
 const Ethereum = require('./ethereum')
-const EthereumListners = require('./ethereum/listeners')
+const EthereumListners = require('./ethereum/workers')
 const TasksPool = require('./TasksPool')
 const repositories = require('./db/repositories')
 

@@ -5,14 +5,14 @@ apps:
     exec_mode: fork
     args: --expose-gc
 
-  - script: ./ethereum/listeners/blocks/index.js
+  - script: ./ethereum/workers/blocks/index.js
     name: blocks-listner
     instances: 1
     exec_mode: fork
     autorestart: true
     args: --expose-gc
 
-  - script: ./ethereum/listeners/blocks/processing.js
+  - script: ./ethereum/workers/blocks/processing.js
     name: transactions-listner
     instances: 3
     exec_mode: fork
