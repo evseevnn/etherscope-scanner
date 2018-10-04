@@ -68,7 +68,7 @@ repositories
             const ETHBalances = await ethereum.getBalances([transaction.from.address, transaction.to.address])
             let decoratedAddresses = []
             for (let b = 0; b < ETHBalances.length; b++) {
-              decoratedAddresses.push(Object.assign(await addressDecorator(ETHBalances[b].address, AddressesRepository), { balance: ETHBalances[b].balance }))
+              decoratedAddresses.push(Object.assign(await addressDecorator(ETHBalances[b].address, AddressesRepository, false, true), { balance: ETHBalances[b].balance }))
             }
 
             // Get token balance
@@ -85,7 +85,7 @@ repositories
                   contract.methods.balanceOf(event.data.from.address).call(),
                   contract.methods.balanceOf(event.data.to.address).call()
                 ])
-                const fromAddress = await addressDecorator(event.data.from, AddressesRepository)
+                const fromAddress = await addressDecorator(event.data.from, AddressesRepository, false, true)
                 fromAddress.tokens = Object.assign(
                   fromAddress.tokens,
                   {
@@ -98,7 +98,7 @@ repositories
                 )
                 decoratedAddresses.push(fromAddress)
 
-                const toAddress = await addressDecorator(event.data.to, AddressesRepository)
+                const toAddress = await addressDecorator(event.data.to, AddressesRepository, false, true)
                 toAddress.tokens = Object.assign(
                   toAddress.tokens,
                   {

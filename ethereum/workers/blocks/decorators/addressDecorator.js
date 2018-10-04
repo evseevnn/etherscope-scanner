@@ -1,25 +1,27 @@
-module.exports = async (address, AddressesRepository, lightMode = false) => {
+module.exports = async (address, AddressesRepository, lightMode = false, includeBalances = false) => {
   // if decorated need do it again
   if (typeof address === 'object' && address.address) {
     address = address.address
   }
+
+  let returnData = { address, type: 'address', balance: 0, tokens: {} }
+
   if (!lightMode) {
     const [ addressData ] = await AddressesRepository.find({ address }, { opcode: -1 }).limit(1).toArray()
     if (addressData) {
-      switch (addressData.type) {
-        case 'contract':
-          const { address, type, data, instanceOf, balance = 0, tokens = {} } = addressData
-          return { address, type, data, instanceOf, balance, tokens }
-
-        case 'address':
-          return addressData
-
-        default:
-          throw new Error('Unknown address type')
-      }
+      returnData = addressData
     }
   }
 
-  // if record not exist
-  return { address, type: 'address', balance: 0, tokens: {} }
+  if (includeBalances) {
+    returnData = (({ address, type, data, instanceOf, balance = 0, tokens = {} }) => ({ address, type, data, instanceOf, balance, tokens }))(returnData)
+  } else {
+    returnData = (({ address, type, data, instanceOf }) => ({ address, type, data, instanceOf }))(returnData)
+  }
+
+  if (returnData.type !== 'contract') {
+    delete returnData.instanceOf
+  }
+
+  return returnData
 }
