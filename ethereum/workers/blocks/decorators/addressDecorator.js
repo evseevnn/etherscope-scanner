@@ -20,6 +20,7 @@ module.exports = async (address, AddressesRepository, lightMode = false, include
   }
 
   if (returnData.type !== 'contract') {
+    delete returnData.data
     delete returnData.instanceOf
   }
 
