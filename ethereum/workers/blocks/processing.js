@@ -1,5 +1,5 @@
 require('dotenv').load()
-const log = require('debug')('ethereum:listners:transactions')
+const log = require('debug')('ethereum:listners:transactions-processing')
 const TasksPool = require('../../../TasksPool')
 const { SAVED_TRANSACTIONS_LISTNER } = require('..')
 const contractsProcessing = require('./modules/contractsProcessing')
