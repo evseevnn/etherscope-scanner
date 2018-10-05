@@ -2,6 +2,7 @@ const { cleanWeb4DecodedFields } = require('../../../helpers')
 const ABICoder = require('web3-eth-abi')
 const logger = require('debug')('decorators:transaction-events-decorator')
 const addressDecorator = require('./addressDecorator')
+const isAddress = new RegExp('^0x[a-f0-9]{40}$', 'i')
 
 module.exports = async (logs, interfaces, AddressesRepository) => {
   const decoratedEvents = []
@@ -33,12 +34,14 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
             if (['Transfer', 'Approval'].includes(events[eventHash].name) && clearEventData && clearEventData.value) {
               clearEventData.value = (clearEventData.value / (Math.pow(10, address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
             }
-            if (clearEventData.from) {
-              clearEventData.from = await addressDecorator(clearEventData.from, AddressesRepository)
+
+            const fields = Object.keys(clearEventData)
+            for (let i = 0; i < fields.length; i++) {
+              if (isAddress.test(clearEventData[fields[i]])) {
+                clearEventData[fields[i]] = await addressDecorator(clearEventData[fields[i]], AddressesRepository)
+              }
             }
-            if (clearEventData.to) {
-              clearEventData.to = await addressDecorator(clearEventData.to, AddressesRepository)
-            }
+
             decoratedEvents.push({
               index: log.logIndex,
               address,
