@@ -6,7 +6,7 @@ apps:
     args: --expose-gc
 
   - script: pending-transactions.js
-    name: pending-transaction-scanner
+    name: pending-transactions-scanner
     instances: 1
     exec_mode: fork
     args: --expose-gc

@@ -16,27 +16,30 @@ module.exports = async (transaction, InterfacesRepository, AddressesRepository, 
 
     let logs = []
 
-    // If transaction has logs that mean what reciver is unknown contract
-    if (transaction.receipt && transaction.receipt.logs && transaction.receipt.logs.length) {
-      logs = transaction.receipt.logs
-      if (decoratedTransaction.to.type !== 'contract') {
-        if (forceContractExist) {
-          decoratedTransaction.to.type = 'contract'
-        } else {
-          // We have logs, so that mean it's contract, but we dont know how to read events of him
-          // So, we just stop processing (nsq will start process again later, it's can help in case what we'll get it later)
-          throw new Error(`Contract ${decoratedTransaction.to.address} not found`)
+    if (transaction.receipt) {
+      // If transaction has logs that mean what reciver is unknown contract
+      if (transaction.receipt.logs && transaction.receipt.logs.length) {
+        logs = transaction.receipt.logs
+        if (decoratedTransaction.to.type !== 'contract') {
+          if (forceContractExist) {
+            decoratedTransaction.to.type = 'contract'
+          } else {
+            // We have logs, so that mean it's contract, but we dont know how to read events of him
+            // So, we just stop processing (nsq will start process again later, it's can help in case what we'll get it later)
+            throw new Error(`Contract ${decoratedTransaction.to.address} not found`)
+          }
+        }
+      }
+
+      // if contract just created set method
+      if (transaction.receipt.contractAddress) {
+        decoratedTransaction.to.type = 'contract'
+        decoratedTransaction.method = {
+          name: 'constructor'
         }
       }
     }
 
-    // if contract just created set method
-    if (transaction.receipt.contractAddress) {
-      decoratedTransaction.to.type = 'contract'
-      decoratedTransaction.method = {
-        name: 'constructor'
-      }
-    }
     // Decorate events
     decoratedTransaction.events = await transactionEventsDecorator(logs, InterfacesRepository.interfaces, AddressesRepository)
 
