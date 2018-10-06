@@ -11,7 +11,8 @@
     "get-code": "node ./script/get-code.js",
     "set-contracts-instances": "node ./scripts/set-contracts-instances.js",
     "clean-addresses": "node ./scripts/addresses-remove-duplicates.js",
-    "update-transactions-counter": "node ./scripts/update-transactions-counter.js"
+    "update-transactions-counter": "node ./scripts/update-transactions-counter.js",
+    "catching-up": "node ./scripts/catching-up.js"
   },
   "dependencies": {
     "debug": "^3.1.0",
