@@ -26,5 +26,6 @@ db.getCollection('transactions').createIndex({hash: 1}, {unique: 1, background: 
 db.getCollection('transactions').createIndex({blockNumber: -1}, {background: true})
 db.getCollection('transactions').createIndex({blockNumber: -1, transactionIndex: -1}, {background: true})
 db.getCollection('transactions').createIndex({createdAt: -1}, {background: true, expireAfterSeconds: 2678400, partialFilterExpression: { processed: true }})
+db.getCollection('transactions').createIndex({addedAt: -1}, {background: true, expireAfterSeconds: 10800, partialFilterExpression: { cache: true }})
 db.getCollection('transactions').createIndex({processed: 1}, {background: true})
 ```
