@@ -23,7 +23,7 @@ Object.keys(contractsInterfaces).forEach(interfaceName => {
 })
 
 class Ethereum extends EventEmitter {
-  constructor({ url = 'ws://localhost:8546', firstBlockNumber = 0 } = {}) {
+  constructor({ url = 'ws://localhost:8546', firstBlockNumber = false } = {}) {
     super()
     this.web3 = new Web3(url)
     this.tracingNewBlocks = false
@@ -37,7 +37,10 @@ class Ethereum extends EventEmitter {
           if (this.firstBlockNumber < blockNumber) {
             const firstBlockNumber = this.firstBlockNumber
             this.firstBlockNumber = blockNumber
-            setImmediate(() => this.emit('blocks', { from: firstBlockNumber, to: blockNumber }))
+            setImmediate(() => this.emit('blocks', {
+              from: (firstBlockNumber === false ? blockNumber : firstBlockNumber),
+              to: blockNumber
+            }))
           }
           setTimeout(() => this.traceNewBlocks(), REQUEST_INTERVAL)
         })
