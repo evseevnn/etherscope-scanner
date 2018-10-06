@@ -1,7 +1,7 @@
 require('dotenv').load()
 const log = require('debug')('ethereum:listners:blocks')
 const TasksPool = require('../../../TasksPool')
-const { NEW_BLOCKS_LISTNER, SAVED_TRANSACTIONS_LISTNER } = require('..')
+const { NEW_BLOCKS_LISTNER, CATCHING_UP_BLOCKS_LISTNER, SAVED_TRANSACTIONS_LISTNER } = require('..')
 const Ethereum = require('../..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 const transactionBeforeSaveDecorator = require('./decorators/transactionBeforeSaveDecorator')
@@ -28,7 +28,7 @@ Promise.all([
   InterfacesRepository,
   TransactionsRepository
 }]) => {
-  new TasksPool(NEW_BLOCKS_LISTNER)
+  new TasksPool(process.env.CATCHING_UP_MODE ? CATCHING_UP_BLOCKS_LISTNER : NEW_BLOCKS_LISTNER)
   .connectAsReader('blocks', async ({ blockNumber }, done) => {
     log(`[#${blockNumber}] Start processing block`)
 

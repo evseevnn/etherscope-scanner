@@ -18,6 +18,15 @@ apps:
     autorestart: true
     args: --expose-gc
 
+  - script: ./ethereum/workers/blocks/index.js
+    name: catching-up-blocks-listner
+    instances: 1
+    exec_mode: fork
+    autorestart: true
+    args: --expose-gc
+    env:
+      CATCHING_UP_MODE: true
+
   - script: ./ethereum/workers/blocks/processing.js
     name: transactions-listner
     instances: 3
