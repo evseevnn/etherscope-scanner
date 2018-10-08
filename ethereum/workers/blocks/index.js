@@ -46,7 +46,7 @@ Promise.all([
           const existsTransactions = await TransactionsRepository.find({ blockNumber }).toArray()
           const existsHashes = existsTransactions.map(transaction => transaction.hash)
           // clean
-          transactions = transactions.filter(transaction => transaction.processed && !existsHashes.includes(transaction.hash))
+          transactions = transactions.filter(transaction => !transaction.processed && !existsHashes.includes(transaction.hash))
           // Decorate transactions
           for (let i = 0; i < transactions.length; i++) {
             const decoratedBeforeTransaction = await transactionBeforeSaveDecorator(transactions[i], AddressesRepository)
