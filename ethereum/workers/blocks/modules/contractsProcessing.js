@@ -29,14 +29,16 @@ module.exports = async ({ addresses, AddressesRepository }) => {
             data,
             opcode,
             address,
-            type: 'contract'
+            type: 'contract',
+            updatedAt: new Date()
           })
         } else {
           addressesForSave.push({
             address,
             type: 'address',
             balance: 0,
-            tokens: {}
+            tokens: {},
+            updatedAt: new Date()
           })
         }
       }
