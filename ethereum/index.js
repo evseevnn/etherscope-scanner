@@ -35,7 +35,7 @@ class Ethereum extends EventEmitter {
     this.web3.eth.getBlockNumber()
         .then(blockNumber => {
           if (this.firstBlockNumber < blockNumber) {
-            const firstBlockNumber = this.firstBlockNumber
+            const firstBlockNumber = this.firstBlockNumber && this.firstBlockNumber + 1
             this.firstBlockNumber = blockNumber
             setImmediate(() => this.emit('blocks', {
               from: (firstBlockNumber === false ? blockNumber : firstBlockNumber),
