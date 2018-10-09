@@ -2,6 +2,7 @@
 
 ```
 db.getCollection('interfaces').createIndex({'contractName': 1}, {unique: 1, background: true})
+db.getCollection('interfaces').createIndex({'abi.name': 1}, {background: true})
 db.getCollection('addresses').createIndex({'statistics.dayTxIn': 1}, {background: true})
 db.getCollection('addresses').createIndex({'statistics.dayTxOut': 1}, {background: true})
 db.getCollection('addresses').createIndex({'statistics.weekTxIn': 1}, {background: true})
@@ -29,4 +30,23 @@ db.getCollection('transactions').createIndex({blockNumber: -1, transactionIndex:
 db.getCollection('transactions').createIndex({createdAt: -1}, {background: true, expireAfterSeconds: 2678400, partialFilterExpression: { processed: true }})
 db.getCollection('transactions').createIndex({addedAt: -1}, {background: true, expireAfterSeconds: 10800, partialFilterExpression: { cache: true }})
 db.getCollection('transactions').createIndex({processed: 1}, {background: true})
+```
+
+# Parity
+
+```
+screen parity\
+  --mode active\
+  --ws-origins all\
+  --ws-hosts all\
+  --ws-interface all\
+  --jsonrpc-interface all\
+  --jsonrpc-cors all\
+  --base-path /mnt/volume_ams3_01/ethereum\
+  --no-warp\
+  --no-hardware-wallets\
+  --min-gas-price 3000000000\
+  --no-serve-light\
+  --fat-db on \
+  --tracing on
 ```
