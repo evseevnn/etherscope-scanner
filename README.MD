@@ -36,7 +36,7 @@ db.getCollection('transactions').createIndex({processed: 1}, {background: true})
 # Parity
 
 ```
-screen parity\
+screen -L parity\
   --mode active\
   --ws-origins all\
   --ws-hosts all\
@@ -48,6 +48,8 @@ screen parity\
   --no-hardware-wallets\
   --min-gas-price 3000000000\
   --no-serve-light\
-  --fat-db on \
-  --tracing on
+  --fat-db on\
+  --tracing on\
+  --db-compaction ssd\
+  --cache-size 4096
 ```

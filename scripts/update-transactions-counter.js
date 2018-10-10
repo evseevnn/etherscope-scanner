@@ -12,7 +12,7 @@ repositories
 
       // Getting active addresses
       const fromAddresses = await TransactionsRepository.distinct('from.address', { 'from.type': 'contract', createdAt: { $gte: fromDate } })
-      const toAddresses = (await TransactionsRepository.distinct('to.address', { 'to.type': 'contract', createdAt: { $gte: fromDate } }))
+      const toAddresses = await TransactionsRepository.distinct('to.address', { 'to.type': 'contract', createdAt: { $gte: fromDate } })
 
       const addressesForUpdate = [...new Set([].concat(fromAddresses, toAddresses))]
       log(`Got ${addressesForUpdate.length} addresses for update on period '${period}'`)
