@@ -49,12 +49,12 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
               code: events[eventHash]._signature,
               data: clearEventData
             })
-            logger(`Event ${events[eventHash].name}`)
+            // logger(`Event ${events[eventHash].name}`)
           } catch (error) {
             logger('Cannot decode events', error, {inputs: event.inputs, data: log.data, topics: log.topics})
           }
         } else {
-          logger(`Unknown event ${eventHash}`)
+          // logger(`Unknown event ${eventHash}`)
         }
       } else {
         logger(`Unknown event on contract without instanceOf`, address)
