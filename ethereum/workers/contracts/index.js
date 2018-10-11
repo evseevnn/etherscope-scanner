@@ -2,7 +2,7 @@ require('dotenv').load()
 const log = require('debug')('ethereum:listners:transactions-processing')
 const TasksPool = require('../../../TasksPool')
 const { CONTRACTS_PROCESSING } = require('..')
-const contractsProcessing = require('../blocks/modules/contractsProcessing')
+const contractsProcessing = require('./modules/contractsProcessing')
 const transactionAfterSaveDecorator = require('../decorators/transactionAfterSaveDecorator')
 const addressDecorator = require('../decorators/addressDecorator')
 
