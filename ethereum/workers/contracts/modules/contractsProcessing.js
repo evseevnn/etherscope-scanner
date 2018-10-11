@@ -1,4 +1,4 @@
-const log = require('debug')('ethereum:listners:blocks:contracts')
+const log = require('debug')('ethereum:listners:contracts-processing')
 const Ethereum = require('../../..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 
@@ -29,16 +29,14 @@ module.exports = async ({ addresses, AddressesRepository }) => {
             data,
             opcode,
             address,
-            type: 'contract',
-            updatedAt: new Date()
+            type: 'contract'
           })
         } else {
           addressesForSave.push({
             address,
             type: 'address',
             balance: 0,
-            tokens: {},
-            updatedAt: new Date()
+            tokens: {}
           })
         }
       }

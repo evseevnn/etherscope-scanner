@@ -1,11 +1,11 @@
 require('dotenv').load()
 const log = require('debug')('ethereum:listners:blocks')
 const TasksPool = require('../../../TasksPool')
-const { NEW_BLOCKS_LISTNER, CATCHING_UP_BLOCKS_LISTNER, SAVED_TRANSACTIONS_LISTNER } = require('..')
+const { NEW_BLOCKS_LISTNER, CATCHING_UP_BLOCKS_LISTNER, CONTRACTS_PROCESSING } = require('..')
 const Ethereum = require('../..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
-const transactionBeforeSaveDecorator = require('./decorators/transactionBeforeSaveDecorator')
-const transactionAfterSaveDecorator = require('./decorators/transactionAfterSaveDecorator')
+const transactionBeforeSaveDecorator = require('../decorators/transactionBeforeSaveDecorator')
+const transactionAfterSaveDecorator = require('../decorators/transactionAfterSaveDecorator')
 const repositories = require('../../../db/repositories')
 
 // @FIXIT: PLS
@@ -16,11 +16,11 @@ setTimeout(() => {
   process.exit(0)
 }, 1 * 60 * 60 * 1000)
 
-const transactionsPool = new TasksPool(SAVED_TRANSACTIONS_LISTNER)
+const contractsProcessingPool = new TasksPool(CONTRACTS_PROCESSING)
 
 Promise.all([
   repositories.connect(),
-  transactionsPool.connectAsWriter()
+  contractsProcessingPool.connectAsWriter()
 ])
 .then(([{
   AddressesRepository,
@@ -66,7 +66,7 @@ Promise.all([
 
           log(`[#${blockNumber}] Send ${transactions.length} transactions to processing`)
           transactions.forEach(transaction => {
-            transactionsPool.send({ hash: transaction.hash })
+            contractsProcessingPool.send({ hash: transaction.hash })
           })
 
           // Replace transaction object on transaction hash in block

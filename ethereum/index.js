@@ -169,7 +169,7 @@ class Ethereum extends EventEmitter {
   }
 
   /**
-   * return contract entity
+   * return contract instance
    * @param {String} contractAddress
    * @param {Array} interfaces
    */

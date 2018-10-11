@@ -1,22 +1,14 @@
 require('dotenv').load()
 const log = require('debug')('ethereum:listners:blocks')
-const TasksPool = require('../../TasksPool')
-const { PENDING_TRANSACTIONS_LISTNER, SAVED_TRANSACTIONS_LISTNER } = require('.')
-const Ethereum = require('..')
+const TasksPool = require('../../../TasksPool')
+const { PENDING_TRANSACTIONS_LISTNER, CONTRACTS_PROCESSING } = require('..')
+const Ethereum = require('../..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
-const transactionBeforeSaveDecorator = require('./blocks/decorators/transactionBeforeSaveDecorator')
-const transactionAfterSaveDecorator = require('./blocks/decorators/transactionAfterSaveDecorator')
-const repositories = require('../../db/repositories')
+const transactionBeforeSaveDecorator = require('../decorators/transactionBeforeSaveDecorator')
+const transactionAfterSaveDecorator = require('../decorators/transactionAfterSaveDecorator')
+const repositories = require('../../../db/repositories')
 
-// @FIXIT: PLS
-// Exit after 1 hours of work.
-// Need for temporary fix problem with memory overflow
-// PM2 will start process again
-setTimeout(() => {
-  process.exit(0)
-}, 1 * 60 * 60 * 1000)
-
-const transactionsPool = new TasksPool(SAVED_TRANSACTIONS_LISTNER)
+const transactionsPool = new TasksPool(CONTRACTS_PROCESSING)
 
 Promise.all([
   repositories.connect(),

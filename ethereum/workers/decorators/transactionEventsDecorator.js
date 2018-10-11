@@ -1,4 +1,4 @@
-const { cleanWeb4DecodedFields } = require('../../../helpers')
+const { cleanWeb4DecodedFields } = require('../../helpers')
 const ABICoder = require('web3-eth-abi')
 const logger = require('debug')('decorators:transaction-events-decorator')
 const addressDecorator = require('./addressDecorator')

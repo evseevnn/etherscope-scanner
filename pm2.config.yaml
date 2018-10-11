@@ -27,14 +27,14 @@ apps:
     env:
       CATCHING_UP_MODE: true
 
-  - script: ./ethereum/workers/blocks/processing.js
-    name: transactions-listner
+  - script: ./ethereum/workers/contracts/index.js
+    name: contracts-processing
     instances: 3
     exec_mode: fork
     autorestart: true
     args: --expose-gc
 
-  - script: ./ethereum/workers/pending-transactions.js
+  - script: ./ethereum/workers/pendings/transactions.js
     name: pending-transactions-worker
     instances: 1
     exec_mode: fork
