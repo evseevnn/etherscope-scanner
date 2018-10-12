@@ -29,7 +29,15 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
         const event = events[eventHash]
         if (event && log.data !== '0x') {
           try {
-            const data = Object.assign({}, ABICoder.decodeLog(event.inputs, log.data, log.topics))
+            // Checking abi input
+            const amountIndexedInput = event.inputs.filter(input => input.indexed).length
+            if (amountIndexedInput > log.topics.length) {
+              event.inputs = event.inputs.map(input => {
+                input.indexed = false
+                return input
+              })
+            }
+            const data = Object.assign({}, ABICoder.decodeLog(event.inputs, log.data, log.topics.slice(1)))
             const clearEventData = cleanWeb4DecodedFields(data, true)
             if (['Transfer', 'Approval'].includes(events[eventHash].name) && clearEventData && clearEventData.value) {
               clearEventData.value = (clearEventData.value / (Math.pow(10, address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
