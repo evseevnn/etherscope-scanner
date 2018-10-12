@@ -31,13 +31,14 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
           try {
             // Checking abi input
             const amountIndexedInput = event.inputs.filter(input => input.indexed).length
-            if (amountIndexedInput > log.topics.length) {
+            const topicsData = log.topics.slice(1)
+            if (amountIndexedInput > topicsData.length) {
               event.inputs = event.inputs.map(input => {
                 input.indexed = false
                 return input
               })
             }
-            const data = Object.assign({}, ABICoder.decodeLog(event.inputs, log.data, log.topics.slice(1)))
+            const data = Object.assign({}, ABICoder.decodeLog(event.inputs, log.data, topicsData))
             const clearEventData = cleanWeb4DecodedFields(data, true)
             if (['Transfer', 'Approval'].includes(events[eventHash].name) && clearEventData && clearEventData.value) {
               clearEventData.value = (clearEventData.value / (Math.pow(10, address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
