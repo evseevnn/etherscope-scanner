@@ -24,7 +24,7 @@ repositories
           // Balances processing
           log('Getting addresses for update ETH balance')
           // Check addresses for update ETH balance
-          const addressesForCheckEthBalance = (await AddressesRepository.find({ addresses: { $in: [transaction.from.address, transaction.to.address] }, updatedAt: { $lt: transaction.createdAt } }).toArray()).map(address => address.address)
+          const addressesForCheckEthBalance = (await AddressesRepository.find({ address: { $in: [transaction.from.address, transaction.to.address] }, updatedAt: { $lt: transaction.createdAt } }).toArray()).map(address => address.address)
           let decoratedAddresses = []
           if (addressesForCheckEthBalance) {
             log(`[${hash}] Getting ETH balances`)
