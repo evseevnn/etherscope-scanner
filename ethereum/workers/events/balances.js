@@ -55,7 +55,7 @@ repositories
           let addressesForUpdateTokensBalanceExistsList = []
           addressesForCheckTokensBalance = Array.from(addressesForCheckTokensBalance)
           if (addressesForCheckTokensBalance.length) {
-            addressesForUpdateTokensBalanceExistsList = (await AddressesRepository.find({ addresses: { $in: addressesForCheckTokensBalance }, $or }).toArray()).map(address => address.address)
+            addressesForUpdateTokensBalanceExistsList = (await AddressesRepository.find({ address: { $in: addressesForCheckTokensBalance }, $or }).toArray()).map(address => address.address)
           }
 
           // Get token balance
