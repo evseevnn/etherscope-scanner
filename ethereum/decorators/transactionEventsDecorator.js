@@ -30,7 +30,7 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
         if (event && log.data !== '0x') {
           try {
             // Checking abi input
-            let eventsInputs = event.inputs.slice(0) // shadow copy
+            let eventsInputs = JSON.parse(JSON.stringify(event.inputs))
             const indexedInput = eventsInputs.filter(input => input.indexed)
             const topicsData = log.topics.slice(1)
             console.log('Check it: ', indexedInput, topicsData, eventsInputs)
