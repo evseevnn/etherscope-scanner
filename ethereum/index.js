@@ -136,13 +136,14 @@ class Ethereum extends EventEmitter {
    * Load contract and return opcode
    * @param {String} address
    */
-  async getContractOpcode(address) {
+  getContractOpcode(address) {
     try {
-      const bytecode = await this.web3.eth.getCode(address)
-      if (bytecode.length) {
-        return exec.execSync(`myth -d -c "${bytecode}"`).toString()
+      const opcode = exec.execSync(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`).toString()
+      if (opcode.startsWith('Received an empty response')) {
+        log(`Address ${address} is not a contract`)
+        return null
       }
-      return null
+      return opcode
     } catch (error) {
       log(error.toString())
       return null
@@ -153,9 +154,9 @@ class Ethereum extends EventEmitter {
    * Return contract interfaces
    * @param {String} address
    */
-  async getContractInterfaces(address, opcode) {
+  getContractInterfaces(address, opcode) {
     if (!opcode) {
-      opcode = await this.getContractOpcode(address)
+      opcode = this.getContractOpcode(address)
     }
 
     // Check types

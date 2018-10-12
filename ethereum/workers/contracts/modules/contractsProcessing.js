@@ -16,9 +16,9 @@ module.exports = async ({ addresses, AddressesRepository }) => {
       const addressesForSave = []
       for (let i = 0; i < addresses.length; i++) {
         const address = addresses[i]
-        const opcode = await ethereum.getContractOpcode(address)
+        const opcode = ethereum.getContractOpcode(address)
         if (opcode) {
-          const interfaces = await ethereum.getContractInterfaces(address, opcode)
+          const interfaces = ethereum.getContractInterfaces(address, opcode)
           const data = await ethereum.getContractDataByInterfaces(address, interfaces)
           if (data && data.totalSupply && data.decimals) {
             data.totalSupply = (data.totalSupply / (Math.pow(10, data.decimals) || 1).toFixed(8).replace(/\.?0+$/, ''))
