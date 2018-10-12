@@ -18,7 +18,7 @@ repositories
     new TasksPool(BALANCES_PROCESSING)
       .connectAsReader('processing', async ({ hash }, done) => {
         // Getting all block data for another process
-        let [ transaction ] = await TransactionsRepository.find({ hash, isContractProcessed: true }).toArray()
+        let [ transaction ] = await TransactionsRepository.find({ hash }).toArray()
 
         if (transaction) {
           // Balances processing
