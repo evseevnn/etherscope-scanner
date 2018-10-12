@@ -2,7 +2,7 @@ const addressDecorator = require('./addressDecorator')
 const transactionInputDecorator = require('./transactionInputDecorator')
 const transactionEventsDecorator = require('./transactionEventsDecorator')
 
-module.exports = async (transaction, InterfacesRepository, AddressesRepository, forceContractExist = false) => {
+module.exports = async (transaction, InterfacesRepository, AddressesRepository) => {
   let decoratedTransaction = {}
   if (transaction) {
     decoratedTransaction = {
@@ -20,14 +20,10 @@ module.exports = async (transaction, InterfacesRepository, AddressesRepository, 
       // If transaction has logs that mean what reciver is unknown contract
       if (transaction.receipt.logs && transaction.receipt.logs.length) {
         logs = transaction.receipt.logs
+        // When contract not parsed addressDecorator will return type of address eq `address`
+        // but it's not
         if (decoratedTransaction.to.type !== 'contract') {
-          if (forceContractExist) {
-            decoratedTransaction.to.type = 'contract'
-          } else {
-            // We have logs, so that mean it's contract, but we dont know how to read events of him
-            // So, we just stop processing (nsq will start process again later, it's can help in case what we'll get it later)
-            throw new Error(`Contract ${decoratedTransaction.to.address} not found`)
-          }
+          decoratedTransaction.to.type = 'contract'
         }
       }
 

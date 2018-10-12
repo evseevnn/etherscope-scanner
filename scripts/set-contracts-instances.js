@@ -21,6 +21,7 @@ repositories
       if (contracts.length) {
         const promises = []
         contracts.forEach(contract => {
+          throw new Error('Need refactor it! New ethereum.getContractOpcode is async function')
           const opcode = ethereum.getContractOpcode(contract.address)
           const interfaces = ethereum.getContractInterfaces(contract.address, opcode)
           log(`[${contract.address}] instanceOf ${interfaces.join(', ')}`)

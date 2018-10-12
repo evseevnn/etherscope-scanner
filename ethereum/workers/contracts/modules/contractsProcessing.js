@@ -8,7 +8,7 @@ const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 module.exports = async ({ addresses, AddressesRepository }) => {
   if (addresses.length) {
     // Get get exists contracts
-    const existContractsAddresses = (await AddressesRepository.find({ address: { $in: addresses } }).toArray()).map(contract => contract.address)
+    const existContractsAddresses = (await AddressesRepository.find({ address: { $in: addresses }, opcode: { $exists: true, $ne: '' } }).toArray()).map(contract => contract.address)
     addresses = addresses.filter(address => !existContractsAddresses.includes(address))
 
     if (addresses.length) {
@@ -16,9 +16,9 @@ module.exports = async ({ addresses, AddressesRepository }) => {
       const addressesForSave = []
       for (let i = 0; i < addresses.length; i++) {
         const address = addresses[i]
-        const opcode = ethereum.getContractOpcode(address)
+        const opcode = await ethereum.getContractOpcode(address)
         if (opcode) {
-          const interfaces = ethereum.getContractInterfaces(address, opcode)
+          const interfaces = await ethereum.getContractInterfaces(address, opcode)
           const data = await ethereum.getContractDataByInterfaces(address, interfaces)
           if (data && data.totalSupply && data.decimals) {
             data.totalSupply = (data.totalSupply / (Math.pow(10, data.decimals) || 1).toFixed(8).replace(/\.?0+$/, ''))

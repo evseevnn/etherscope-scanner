@@ -1,4 +1,4 @@
-const { cleanWeb4DecodedFields } = require('../../helpers')
+const { cleanWeb4DecodedFields } = require('../helpers')
 const ABICoder = require('web3-eth-abi')
 
 module.exports = (transaction, interfaces, instanceOf) => {

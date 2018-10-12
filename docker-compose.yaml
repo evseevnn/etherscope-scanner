@@ -13,22 +13,6 @@ services:
       - 27017:27017
     command: mongod --smallfiles --storageEngine=wiredTiger --logpath=/dev/null # --quiet
 
-  rabbit:
-    environment:
-      - RABBITMQ_ERLANG_COOKIE='secret_cookie'
-    networks:
-      - back
-    hostname: rabbit_node_1
-    image: "rabbitmq:3-management"
-    ports:
-      - "15672:15672"
-      - "5672:5672"
-    tty: true
-    volumes:
-      - rabbit1:/var/lib/rabbitmq
-      - ./conf/:/etc/rabbitmq/
-    command:  bash -c "sleep 10; rabbitmq-server;"
-
   nsqlookup:
     image: nsqio/nsq
     hostname: nsqlookup

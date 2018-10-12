@@ -4,8 +4,8 @@ const TasksPool = require('../../../TasksPool')
 const { NEW_BLOCKS_LISTNER, CATCHING_UP_BLOCKS_LISTNER, CONTRACTS_PROCESSING } = require('..')
 const Ethereum = require('../..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
-const transactionBeforeSaveDecorator = require('../decorators/transactionBeforeSaveDecorator')
-const transactionAfterSaveDecorator = require('../decorators/transactionAfterSaveDecorator')
+const transactionBeforeSaveDecorator = require('../../decorators/transactionBeforeSaveDecorator')
+const transactionAfterSaveDecorator = require('../../decorators/transactionAfterSaveDecorator')
 const repositories = require('../../../db/repositories')
 
 // @FIXIT: PLS
@@ -77,14 +77,14 @@ Promise.all([
         await BlocksReposiroty.insert(block)
 
         log(`[#${blockNumber}] Done (tx=${transactions.length})`)
-        setImmediate(() => done())
+        done()
       } catch (error) {
         log(`[#${blockNumber}] processing error`, error)
         process.exit()
       }
     } else {
       log(`[#${blockNumber}] Exist`)
-      setImmediate(() => done())
+      done()
     }
   })
 })
