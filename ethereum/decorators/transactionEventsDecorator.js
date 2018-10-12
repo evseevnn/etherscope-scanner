@@ -25,7 +25,7 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
           }
         })
 
-        const eventHash = log.topics.shift()
+        const eventHash = log.topics && log.topics[0]
         const event = events[eventHash]
         if (event && log.data !== '0x') {
           try {
