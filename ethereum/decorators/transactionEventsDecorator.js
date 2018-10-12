@@ -33,7 +33,6 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
             let eventsInputs = JSON.parse(JSON.stringify(event.inputs))
             const indexedInput = eventsInputs.filter(input => input.indexed)
             const topicsData = log.topics.slice(1)
-            console.log('Check it: ', indexedInput, topicsData, eventsInputs)
             if (indexedInput.length > topicsData.length) {
               eventsInputs = eventsInputs.map(input => {
                 input.indexed = false
