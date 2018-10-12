@@ -69,9 +69,9 @@ Promise.all([
           log(`[#${blockNumber}] Send ${transactions.length} transactions to processing`)
           transactions.forEach(transaction => {
             // Send to contract processing
-            contractsProcessingPool.send({ hash: transaction.hash })
+            setImmediate(() => contractsProcessingPool.send({ hash: transaction.hash }))
             // Send to balance updating
-            balancesProcessingPool.send({ hash: transaction.hash })
+            setImmediate(() => balancesProcessingPool.send({ hash: transaction.hash }))
           })
 
           // Replace transaction object on transaction hash in block
