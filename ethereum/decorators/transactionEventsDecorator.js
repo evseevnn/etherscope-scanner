@@ -30,7 +30,7 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
         if (event && log.data !== '0x') {
           try {
             // Checking abi input
-            const indexedInput = event.inputs.filter(input => input.indexed).length
+            const indexedInput = event.inputs.filter(input => input.indexed)
             const topicsData = log.topics.slice(1)
             console.log('Check it: ', indexedInput, topicsData)
             if (indexedInput.length > topicsData.length) {
