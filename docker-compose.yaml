@@ -39,10 +39,3 @@ services:
     ports:
       - "4171:4171"
     command: /nsqadmin --lookupd-http-address=nsqlookup:4161
-
-volumes:
-  rabbit1:
-    driver: local
-
-networks:
-  back:
