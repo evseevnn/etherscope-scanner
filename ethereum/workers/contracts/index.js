@@ -29,13 +29,19 @@ repositories
             }
             // from
             if (typeof transaction.from === 'object' && transaction.from.address) {
-              contractAddresses.add(transaction.from.address)
+              // We'll do it only if sure
+              if (transaction.from.type === 'contract') {
+                contractAddresses.add(transaction.from.address)
+              }
             } else {
               contractAddresses.add(transaction.from)
             }
             // to
             if (typeof transaction.to === 'object' && transaction.to.address) {
-              contractAddresses.add(transaction.to.address)
+              // We'll do it only if sure
+              if (transaction.to.type === 'contract') {
+                contractAddresses.add(transaction.to.address)
+              }
             } else {
               contractAddresses.add(transaction.to)
             }
