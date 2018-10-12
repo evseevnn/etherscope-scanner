@@ -2,5 +2,6 @@ module.exports = {
   NEW_BLOCKS_LISTNER: 'ethereum_block',
   CATCHING_UP_BLOCKS_LISTNER: 'ethereum_block_catching_up',
   PENDING_TRANSACTIONS_LISTNER: 'pending_transactions',
-  CONTRACTS_PROCESSING: 'saved_transactions'
+  CONTRACTS_PROCESSING: 'saved_transactions',
+  BALANCES_PROCESSING: 'balances_processing'
 }

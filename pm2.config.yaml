@@ -29,7 +29,14 @@ apps:
 
   - script: ./ethereum/workers/contracts/index.js
     name: contracts-processing
-    instances: 3
+    instances: 4
+    exec_mode: fork
+    autorestart: true
+    args: --expose-gc
+
+  - script: ./ethereum/workers/events/balances.js
+    name: balances-processing
+    instances: 1
     exec_mode: fork
     autorestart: true
     args: --expose-gc
