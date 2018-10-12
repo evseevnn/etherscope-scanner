@@ -30,16 +30,17 @@ module.exports = async (logs, interfaces, AddressesRepository) => {
         if (event && log.data !== '0x') {
           try {
             // Checking abi input
-            const indexedInput = event.inputs.filter(input => input.indexed)
+            let eventsInputs = event.inputs
+            const indexedInput = eventsInputs.filter(input => input.indexed)
             const topicsData = log.topics.slice(1)
             console.log('Check it: ', indexedInput, topicsData)
             if (indexedInput.length > topicsData.length) {
-              event.inputs = event.inputs.map(input => {
+              eventsInputs = eventsInputs.map(input => {
                 input.indexed = false
                 return input
               })
             }
-            const data = Object.assign({}, ABICoder.decodeLog(event.inputs, log.data, topicsData))
+            const data = Object.assign({}, ABICoder.decodeLog(eventsInputs, log.data, topicsData))
             const clearEventData = cleanWeb4DecodedFields(data, true)
             if (['Transfer', 'Approval'].includes(events[eventHash].name) && clearEventData && clearEventData.value) {
               clearEventData.value = (clearEventData.value / (Math.pow(10, address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
