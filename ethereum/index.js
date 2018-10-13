@@ -53,46 +53,38 @@ class Ethereum extends EventEmitter {
    * @return {Promise<Object>}
    */
   async getBlockData(blockNumber) {
-    // Getting block and transactions data
-    const block = await this.web3.eth.getBlock(blockNumber, true)
-    if (block.extraData.length && block.extraData.startsWith('0x')) {
-      block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
-    }
-    const transactions = Array.from(block.transactions)
-    let gottedReceipts = 0
-    try {
-      if (transactions.length) {
-        // Getting operations data
-        const batch = new this.web3.BatchRequest()
-        transactions.forEach((transaction, index) => {
-          batch.add(this.web3.eth.getTransactionReceipt.request(transaction.hash, (error, data) => {
-            if (error) {
-              throw new Error(error)
-            }
-            transactions[index].receipt = data
-            gottedReceipts++
-          }))
-        })
-        batch.execute()
+    return new Promise(async (resolve) => {
+      // Getting block and transactions data
+      const block = await this.web3.eth.getBlock(blockNumber, true)
+      if (block.extraData.length && block.extraData.startsWith('0x')) {
+        block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
       }
-    } catch (error) {
-      log(error.toString())
-      return new Promise((resolve, reject) => {
-        setTimeout(() => resolve(this.getBlockData(blockNumber)), 1000)
-      })
-    }
-
-    // Wait for batch is finish
-    return new Promise((resolve, reject) => {
-      function wait() {
-        if (gottedReceipts < transactions.length) {
-          setTimeout(() => wait(), 10)
-        } else {
-          resolve({ block, transactions })
+      const transactions = Array.from(block.transactions)
+      let gottedReceipts = 0
+      try {
+        if (transactions.length) {
+          // Getting operations data
+          const batch = new this.web3.BatchRequest()
+          transactions.forEach((transaction, index) => {
+            batch.add(this.web3.eth.getTransactionReceipt.request(transaction.hash, (error, data) => {
+              if (error) {
+                throw new Error(error)
+              }
+              transactions[index].receipt = data
+              gottedReceipts++
+              if (gottedReceipts === transactions.length) {
+                resolve({ block, transactions })
+              }
+            }))
+          })
+          batch.execute()
         }
+      } catch (error) {
+        log(error.toString())
+        return new Promise((resolve, reject) => {
+          setTimeout(() => resolve(this.getBlockData(blockNumber)), 1000)
+        })
       }
-
-      wait()
     })
   }
 
