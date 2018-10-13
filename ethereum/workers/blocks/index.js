@@ -8,14 +8,6 @@ const transactionBeforeSaveDecorator = require('../../decorators/transactionBefo
 const transactionAfterSaveDecorator = require('../../decorators/transactionAfterSaveDecorator')
 const repositories = require('../../../db/repositories')
 
-// @FIXIT: PLS
-// Exit after 1 hours of work.
-// Need for temporary fix problem with memory overflow
-// PM2 will start process again
-setTimeout(() => {
-  process.exit(0)
-}, 1 * 60 * 60 * 1000)
-
 const contractsProcessingPool = new TasksPool(CONTRACTS_PROCESSING)
 const balancesProcessingPool = new TasksPool(BALANCES_PROCESSING)
 

@@ -9,14 +9,6 @@ const repositories = require('../../../db/repositories')
 const Ethereum = require('../..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 
-// @FIXIT: PLS
-// Exit after 1 hours of work.
-// Need for temporary fix problem with memory overflow
-// PM2 will start process again
-setTimeout(() => {
-  process.exit(0)
-}, 1 * 60 * 60 * 1000)
-
 repositories
   .connect()
   .then(({
