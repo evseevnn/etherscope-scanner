@@ -86,7 +86,7 @@ class Ethereum extends EventEmitter {
     return new Promise((resolve, reject) => {
       function wait() {
         if (gottedReceipts < transactions.length) {
-          setImmediate(() => wait())
+          setTimeout(() => wait(), 10)
         } else {
           resolve({ block, transactions })
         }
