@@ -102,33 +102,23 @@ class Ethereum extends EventEmitter {
    * @return {Promise<Object>}
    */
   async getBalances(addresses) {
-    const addressesBalances = []
-    // Getting operations data
-    const batch = new this.web3.BatchRequest()
-    addresses = Array.from(new Set(addresses))
-    addresses.forEach(address => {
-      batch.add(this.web3.eth.getBalance.request(address, (error, data) => {
-        if (error) {
-          throw new Error(error)
-        }
-        addressesBalances.push({ address, balance: this.web3.utils.fromWei(data.toString(10), 'ether') })
-      }))
-    })
-    batch.execute()
-
-    // Wait for batch is finish
-    return new Promise((resolve, reject) => {
-      function wait() {
-        setImmediate(() => {
-          if (addressesBalances.length < addresses.length) {
-            wait()
-          } else {
+    return new Promise((resolve) => {
+      const addressesBalances = []
+      // Getting operations data
+      const batch = new this.web3.BatchRequest()
+      addresses = Array.from(new Set(addresses))
+      addresses.forEach(address => {
+        batch.add(this.web3.eth.getBalance.request(address, (error, data) => {
+          if (error) {
+            throw new Error(error)
+          }
+          addressesBalances.push({ address, balance: this.web3.utils.fromWei(data.toString(10), 'ether') })
+          if (addressesBalances.length === addresses.length) {
             resolve(addressesBalances)
           }
-        })
-      }
-
-      wait()
+        }))
+      })
+      batch.execute()
     })
   }
 
