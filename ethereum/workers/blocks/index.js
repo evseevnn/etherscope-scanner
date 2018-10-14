@@ -74,6 +74,11 @@ Promise.all([
         await BlocksReposiroty.insert(block)
 
         log(`[#${blockNumber}] Done (tx=${transactions.length})`)
+
+        if (global.gc) {
+          setInterval(() => global.gc(), 5000)
+        }
+
         done()
       } catch (error) {
         log(`[#${blockNumber}] processing error`, error)

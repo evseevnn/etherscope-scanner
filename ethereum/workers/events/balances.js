@@ -138,6 +138,10 @@ repositories
           log(`Transaction ${hash} not found`)
         }
 
+        if (global.gc) {
+          setInterval(() => global.gc(), 5000)
+        }
+
         done()
       })
   })
