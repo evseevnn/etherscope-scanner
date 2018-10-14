@@ -51,5 +51,8 @@ screen -L parity\
   --fat-db on\
   --tracing on\
   --db-compaction ssd\
-  --cache-size 4096
+  --max-peers 100\
+  --snapshot-peers 50\
+  --min-peers 50\
+  --cache-size 6144
 ```

@@ -78,6 +78,8 @@ class Ethereum extends EventEmitter {
             }))
           })
           batch.execute()
+        } else {
+          resolve({ block, transactions })
         }
       } catch (error) {
         log(error.toString())
