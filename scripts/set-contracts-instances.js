@@ -21,15 +21,16 @@ repositories
       if (contracts.length) {
         const promises = []
         contracts.forEach(contract => {
-          const opcode = ethereum.getContractOpcode(contract.address)
-          const interfaces = ethereum.getContractInterfaces(contract.address, opcode)
-          log(`[${contract.address}] instanceOf ${interfaces.join(', ')}`)
-          promises.push(ethereum.getContractDataByInterfaces(contract.address, interfaces).then(data => {
-            contract.instanceOf = interfaces
-            contract.data = data
-            contract.opcode = opcode
-            return contract
-          }))
+          // ???getContractOpcode is async now
+          // const opcode = await ethereum.getContractOpcode(contract.address)
+          // const interfaces = ethereum.getContractInterfaces(contract.address, opcode)
+          // log(`[${contract.address}] instanceOf ${interfaces.join(', ')}`)
+          // promises.push(ethereum.getContractDataByInterfaces(contract.address, interfaces).then(data => {
+          //   contract.instanceOf = interfaces
+          //   contract.data = data
+          //   contract.opcode = opcode
+          //   return contract
+          // }))
         })
 
         await AddressesRepository.update(await Promise.all(promises), ['address'], true)

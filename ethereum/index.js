@@ -1,7 +1,8 @@
 const log = require('debug')('ethereum')
 const Web3 = require('web3')
 const EventEmitter = require('events')
-const exec = require('child_process')
+const util = require('util')
+const exec = util.promisify(require('child_process').exec)
 
 const REQUEST_INTERVAL = 1000 // every second
 const contractsInterfaces = require('./interfaces')
@@ -120,9 +121,12 @@ class Ethereum extends EventEmitter {
    * Load contract and return opcode
    * @param {String} address
    */
-  getContractOpcode(address) {
+  async getContractOpcode(address) {
     try {
-      const opcode = exec.execSync(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`).toString()
+      const { opcode, stderr } = await exec(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`)
+      if (stderr) {
+        throw Error(`Error getting opcode for address ${address}`)
+      }
       if (opcode.startsWith('Received an empty response')) {
         log(`Address ${address} is not a contract`)
         return null
@@ -138,9 +142,9 @@ class Ethereum extends EventEmitter {
    * Return contract interfaces
    * @param {String} address
    */
-  getContractInterfaces(address, opcode) {
+  async getContractInterfaces(address, opcode) {
     if (!opcode) {
-      opcode = this.getContractOpcode(address)
+      opcode = await this.getContractOpcode(address)
     }
 
     // Check types
