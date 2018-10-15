@@ -123,7 +123,7 @@ class Ethereum extends EventEmitter {
    */
   async getContractOpcode(address) {
     try {
-      const { opcode, stderr } = await exec(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`)
+      const { stdout: opcode, stderr } = await exec(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`)
       if (stderr) {
         throw Error(`Error getting opcode for address ${address}`)
       }
