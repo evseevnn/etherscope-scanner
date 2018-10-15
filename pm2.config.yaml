@@ -18,7 +18,7 @@ apps:
     autorestart: true
     args: --expose-gc
     env:
-      NSQ_READER_MAX_IN_FLIGHT: 10
+      NSQ_READER_MAX_IN_FLIGHT: 5
 
   - script: ./ethereum/workers/blocks/index.js
     name: catching-up-blocks-listner
@@ -31,10 +31,12 @@ apps:
 
   - script: ./ethereum/workers/contracts/index.js
     name: contracts-processing
-    instances: 4
+    instances: 1
     exec_mode: fork
     autorestart: true
     args: --expose-gc
+    env:
+      NSQ_READER_MAX_IN_FLIGHT: 5
 
   - script: ./ethereum/workers/events/balances.js
     name: balances-processing
