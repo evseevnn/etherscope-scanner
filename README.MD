@@ -1,6 +1,7 @@
 ### Indexes
 
 ```
+db.getCollection('accountsDevices').createIndex({'address': 1, 'deviceId': 1}, {unique: 1, background: true})
 db.getCollection('interfaces').createIndex({'contractName': 1}, {unique: 1, background: true})
 db.getCollection('interfaces').createIndex({'abi.name': 1}, {background: true})
 db.getCollection('addresses').createIndex({'statistics.dayTxIn': 1}, {background: true})

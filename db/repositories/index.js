@@ -3,6 +3,7 @@ const AddressesRepository = require('./AddressesRepository')
 const BlocksRepository = require('./BlocksRepository')
 const TransactionsRepository = require('./TransactionsRepository')
 const InterfacesRepository = require('./InterfacesRepository')
+const AccountsDevicesRepository = require('./AccountsDevicesRepository')
 
 module.exports = {
   connect: async () => {
@@ -11,7 +12,8 @@ module.exports = {
       AddressesRepository: new AddressesRepository(dbClient),
       BlocksReposiroty: new BlocksRepository(dbClient),
       TransactionsRepository: new TransactionsRepository(dbClient),
-      InterfacesRepository: new InterfacesRepository(dbClient)
+      InterfacesRepository: new InterfacesRepository(dbClient),
+      AccountsDevicesRepository: new AccountsDevicesRepository(dbClient)
     }
   }
 }

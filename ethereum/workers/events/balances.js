@@ -1,7 +1,7 @@
 require('dotenv').load()
 const log = require('debug')('ethereum:listners:transactions-processing')
 const TasksPool = require('../../../TasksPool')
-const { BALANCES_PROCESSING } = require('..')
+const { EVENTS_PROCESSING } = require('..')
 const addressDecorator = require('../../decorators/addressDecorator')
 
 const repositories = require('../../../db/repositories')
@@ -15,8 +15,8 @@ repositories
     AddressesRepository,
     TransactionsRepository
   }) => {
-    new TasksPool(BALANCES_PROCESSING)
-      .connectAsReader('processing', async ({ hash }, done) => {
+    new TasksPool(EVENTS_PROCESSING)
+      .connectAsReader('balances-processing', async ({ hash }, done) => {
         // Getting all block data for another process
         let [ transaction ] = await TransactionsRepository.find({ hash }).toArray()
 

@@ -45,6 +45,13 @@ apps:
     autorestart: true
     args: --expose-gc
 
+  - script: ./ethereum/workers/events/push-notification.js
+    name: push-notification
+    instances: 1
+    exec_mode: fork
+    autorestart: true
+    args: --expose-gc
+
   - script: ./ethereum/workers/pendings/transactions.js
     name: pending-transactions-worker
     instances: 1

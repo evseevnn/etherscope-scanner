@@ -1,7 +1,7 @@
 require('dotenv').load()
 const log = require('debug')('ethereum:listners:blocks')
 const TasksPool = require('../../../TasksPool')
-const { NEW_BLOCKS_LISTNER, CATCHING_UP_BLOCKS_LISTNER, CONTRACTS_PROCESSING, BALANCES_PROCESSING } = require('..')
+const { NEW_BLOCKS_LISTNER, CATCHING_UP_BLOCKS_LISTNER, CONTRACTS_PROCESSING, EVENTS_PROCESSING } = require('..')
 const Ethereum = require('../..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 const transactionBeforeSaveDecorator = require('../../decorators/transactionBeforeSaveDecorator')
@@ -9,7 +9,7 @@ const transactionAfterSaveDecorator = require('../../decorators/transactionAfter
 const repositories = require('../../../db/repositories')
 
 const contractsProcessingPool = new TasksPool(CONTRACTS_PROCESSING)
-const balancesProcessingPool = new TasksPool(BALANCES_PROCESSING)
+const balancesProcessingPool = new TasksPool(EVENTS_PROCESSING)
 
 Promise.all([
   repositories.connect(),
