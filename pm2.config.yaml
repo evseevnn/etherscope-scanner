@@ -28,7 +28,7 @@ apps:
     args: --expose-gc
     env:
       CATCHING_UP_MODE: true
-      NSQ_READER_MAX_IN_FLIGHT: 2
+      NSQ_READER_MAX_IN_FLIGHT: 1
 
   - script: ./ethereum/workers/contracts/index.js
     name: contracts-processing
