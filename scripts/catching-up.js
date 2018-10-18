@@ -5,6 +5,9 @@ const EthereumListners = require('../ethereum/workers')
 const TasksPool = require('../TasksPool')
 const repositories = require('../db/repositories')
 
+const Ethereum = require('../ethereum')
+const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
+
 // Connect to repositories
 repositories
   .connect()
@@ -12,30 +15,41 @@ repositories
     BlocksReposiroty
   }) => {
     const blocksPool = new TasksPool(EthereumListners.CATCHING_UP_BLOCKS_LISTNER)
+    const lastEtereumBlock = await ethereum.web3.eth.getBlockNumber()
+    log(`Catching until [${stopOnBlock}]`)
     blocksPool
       .connectAsWriter()
       .then(async () => {
         // getting cursor
-        const cursor = await BlocksReposiroty.find({}, { number: 1 }).sort({ number: 1 })
+        const blocksAmount = await BlocksReposiroty.count({})
         let lastBlockNumber = 0
-        cursor.forEach(block => {
-          if (block.number === lastBlockNumber) {
-            // Block exists
-            lastBlockNumber++
-          } else {
-            // Block not found
-            for (; lastBlockNumber < block.number; lastBlockNumber++) {
-              blocksPool.send({ blockNumber: lastBlockNumber })
-              log(`Catch skipped block [${lastBlockNumber}]`)
+        if (blocksAmount > 0) {
+          const cursor = await BlocksReposiroty.find({}, { number: 1 }).sort({ number: 1 })
+          cursor.forEach(block => {
+            if (block.number === lastBlockNumber) {
+              // Block exists
+              lastBlockNumber++
+            } else {
+              // Block not found
+              for (; lastBlockNumber < block.number; lastBlockNumber++) {
+                blocksPool.send({ blockNumber: lastBlockNumber })
+                log(`Catch skipped block [${lastBlockNumber}]`)
+              }
             }
+          }, (error) => {
+            if (error) {
+              log('Error: ', error)
+            } else {
+              log('Finish')
+            }
+            process.exit()
+          })
+        } else {
+          for (; lastBlockNumber < lastEtereumBlock; lastBlockNumber++) {
+            blocksPool.send({ blockNumber: lastBlockNumber })
+            log(`Catch skipped block [${lastBlockNumber}]`)
           }
-        }, (error) => {
-          if (error) {
-            log('Error: ', error)
-          } else {
-            log('Finish')
-          }
-          process.exit()
-        })
+          log('Finish')
+        }
       })
   })
