@@ -110,23 +110,39 @@ class Ethereum extends EventEmitter {
    * @return {Promise<Object>}
    */
   async getBalances(addresses) {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       const addressesBalances = []
+
       // Getting operations data
-      const batch = new this.web3.BatchRequest()
-      addresses = Array.from(new Set(addresses))
-      addresses.forEach(address => {
-        batch.add(this.web3.eth.getBalance.request(address, (error, data) => {
-          if (error) {
-            throw new Error(error)
-          }
-          addressesBalances.push({ address, balance: this.web3.utils.fromWei(data.toString(10), 'ether') })
-          if (addressesBalances.length === addresses.length) {
-            resolve(addressesBalances)
-          }
-        }))
-      })
-      batch.execute()
+      let lastIndex = 0
+      let forRequest = addresses.slice(lastIndex, 20)
+      const balances = []
+      while (forRequest.length > 0) {
+        const promises = forRequest.map(address => this.web3.eth.getBalance(address))
+        balances.push(...await Promise.all(promises))
+        for (let i = lastIndex; i < lastIndex + forRequest.length; i++) {
+          addressesBalances.push({ address: addresses[i], balance: this.web3.utils.fromWei(balances[i].toString(10), 'ether') })
+        }
+        lastIndex += 20
+        forRequest = addresses.slice(lastIndex, lastIndex + 20)
+      }
+
+      resolve(addressesBalances)
+      // Getting operations data
+      // const batch = new this.web3.BatchRequest()
+      // addresses = Array.from(new Set(addresses))
+      // addresses.forEach(address => {
+      //   batch.add(this.web3.eth.getBalance.request(address, (error, data) => {
+      //     if (error) {
+      //       throw new Error(error)
+      //     }
+      //     addressesBalances.push({ address, balance:  })
+      //     if (addressesBalances.length === addresses.length) {
+      //       resolve(addressesBalances)
+      //     }
+      //   }))
+      // })
+      // batch.execute()
     })
   }
 
