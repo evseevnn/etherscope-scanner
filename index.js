@@ -21,10 +21,10 @@ blocksPool
     // Start tracing new blocks
     ethereum.traceNewBlocks()
     ethereum
-      .on('blocks', ({ from, to }) => {
+      .on('blocks', async ({ from, to }) => {
         for (; from <= to; from++) {
           log(`Send to processing block #${from}`)
-          blocksPool.send({ blockNumber: from })
+          await blocksPool.send({ blockNumber: from })
         }
       })
   })
