@@ -16,7 +16,7 @@ repositories
   }) => {
     const blocksPool = new TasksPool(EthereumListners.CATCHING_UP_BLOCKS_LISTNER)
     const lastEtereumBlock = await ethereum.web3.eth.getBlockNumber()
-    log(`Catching until [${stopOnBlock}]`)
+    log(`Catching until [${lastEtereumBlock}]`)
     blocksPool
       .connectAsWriter()
       .then(async () => {
