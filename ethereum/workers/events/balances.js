@@ -38,7 +38,7 @@ repositories
 
             // Getting addresses from events
             let addressesForCheckTokensBalance = new Set()
-            const $or = []
+            // const $or = []
             for (let i = 0; i < transaction.events.length; i++) {
               const event = transaction.events[i]
               if (
@@ -56,7 +56,7 @@ repositories
             let addressesForUpdateTokensBalanceExistsList = []
             addressesForCheckTokensBalance = Array.from(addressesForCheckTokensBalance)
             if (addressesForCheckTokensBalance.length) {
-              addressesForUpdateTokensBalanceExistsList = (await AddressesRepository.find({ address: { $in: addressesForCheckTokensBalance }, $or }).toArray()).map(address => address.address)
+              addressesForUpdateTokensBalanceExistsList = (await AddressesRepository.find({ address: { $in: addressesForCheckTokensBalance }/*, $or*/ }).toArray()).map(address => address.address)
             }
 
             // Get token balance
