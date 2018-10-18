@@ -22,13 +22,13 @@ apps:
 
   - script: ./ethereum/workers/blocks/index.js
     name: catching-up-blocks-listner
-    instances: 1
+    instances: 2
     exec_mode: fork
     autorestart: true
     args: --expose-gc
     env:
       CATCHING_UP_MODE: true
-      NSQ_READER_MAX_IN_FLIGHT: 5
+      NSQ_READER_MAX_IN_FLIGHT: 1
 
   - script: ./ethereum/workers/contracts/index.js
     name: contracts-processing
