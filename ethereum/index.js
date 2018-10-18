@@ -71,7 +71,7 @@ class Ethereum extends EventEmitter {
           while (forRequest.length > 0) {
             const promises = forRequest.map(transaction => this.web3.eth.getTransactionReceipt(transaction.hash))
             receipts.push(...await Promise.all(promises))
-            for (let i = lastIndex; i < lastIndex + 20; i++) {
+            for (let i = lastIndex; i < lastIndex + forRequest.length; i++) {
               transactions[i].receipt = receipts[i]
             }
             lastIndex += 20
