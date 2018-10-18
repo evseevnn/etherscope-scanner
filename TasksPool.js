@@ -59,11 +59,15 @@ class TasksPool {
   }
 
   send(data) {
-    nsqWriter.publish(this.topic, data, (error) => {
-      if (error) {
-        log(error)
-      }
-    })
+    return new Promise((resolve, reject) => {
+      nsqWriter.publish(this.topic, data, (error) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
+        }
+      })
+    }).catch(error => log(error))
   }
 
   connectAsReader(channel, callback) {

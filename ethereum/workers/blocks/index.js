@@ -9,12 +9,12 @@ const transactionAfterSaveDecorator = require('../../decorators/transactionAfter
 const repositories = require('../../../db/repositories')
 
 const contractsProcessingPool = new TasksPool(CONTRACTS_PROCESSING)
-const balancesProcessingPool = new TasksPool(EVENTS_PROCESSING)
+const eventsProcessingPool = new TasksPool(EVENTS_PROCESSING)
 
 Promise.all([
   repositories.connect(),
   contractsProcessingPool.connectAsWriter(),
-  balancesProcessingPool.connectAsWriter()
+  eventsProcessingPool.connectAsWriter()
 ])
 .then(([{
   AddressesRepository,
@@ -59,12 +59,14 @@ Promise.all([
           await TransactionsRepository.update(transactions, ['hash'], true)
 
           log(`[#${blockNumber}] Send ${transactions.length} transactions to processing`)
-          transactions.forEach(transaction => {
-            // Send to contract processing
-            setImmediate(() => contractsProcessingPool.send({ hash: transaction.hash }))
-            // Send to balance updating
-            setImmediate(() => balancesProcessingPool.send({ hash: transaction.hash }))
-          })
+          for (let i = 0; i < transactions.length; i++) {
+            await Promise.all([
+              // Send to contract processing
+              contractsProcessingPool.send({ hash: transactions[i].hash }),
+              // Send to balance updating
+              eventsProcessingPool.send({ hash: transactions[i].hash })
+            ])
+          }
 
           // Replace transaction object on transaction hash in block
           block.transactions = block.transactions.map(transaction => transaction.hash)

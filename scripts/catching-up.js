@@ -25,14 +25,14 @@ repositories
         let lastBlockNumber = 0
         if (blocksAmount > 0) {
           const cursor = await BlocksReposiroty.find({}, { number: 1 }).sort({ number: 1 })
-          cursor.forEach(block => {
+          cursor.forEach(async (block) => {
             if (block.number === lastBlockNumber) {
               // Block exists
               lastBlockNumber++
             } else {
               // Block not found
               for (; lastBlockNumber < block.number; lastBlockNumber++) {
-                blocksPool.send({ blockNumber: lastBlockNumber })
+                await blocksPool.send({ blockNumber: lastBlockNumber })
                 log(`Catch skipped block [${lastBlockNumber}]`)
               }
             }
@@ -46,7 +46,7 @@ repositories
           })
         } else {
           for (; lastBlockNumber < lastEtereumBlock; lastBlockNumber++) {
-            blocksPool.send({ blockNumber: lastBlockNumber })
+            await blocksPool.send({ blockNumber: lastBlockNumber })
             log(`Catch skipped block [${lastBlockNumber}]`)
           }
           log('Finish')
