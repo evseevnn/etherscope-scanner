@@ -9,6 +9,10 @@ const repositories = require('../../../db/repositories')
 const Ethereum = require('../..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 
+if (global.gc) {
+  setInterval(() => global.gc(), 5000)
+}
+
 repositories
   .connect()
   .then(({
@@ -25,20 +29,26 @@ repositories
             // Balances processing
             log('Getting addresses for update ETH balance')
             // Check addresses for update ETH balance
-            const addressesForCheckEthBalance = (await AddressesRepository.find({ address: { $in: [transaction.from.address, transaction.to.address] }/*, updatedAt: { $lt: transaction.createdAt }*/ }).toArray()).map(address => address.address)
+            const noNeedForCheckAddresses = (await AddressesRepository.find({ address: { $in: [transaction.from.address, transaction.to.address] }, updatedAt: { $gt: transaction.createdAt } }).toArray()).map(address => address.address)
             let decoratedAddresses = []
+            const addressesForCheckEthBalance = [transaction.from.address, transaction.to.address].filter(address => !noNeedForCheckAddresses.includes(address))
             if (addressesForCheckEthBalance) {
               log(`[${hash}] Getting ETH balances`)
               // Update ethereum balance
-              const ETHBalances = await ethereum.getBalances([transaction.from.address, transaction.to.address])
+              const ETHBalances = await ethereum.getBalances(addressesForCheckEthBalance)
               for (let b = 0; b < ETHBalances.length; b++) {
-                decoratedAddresses.push(Object.assign(await addressDecorator(ETHBalances[b].address, AddressesRepository, false, true), { balance: ETHBalances[b].balance, updatedAt: new Date() }))
+                decoratedAddresses.push(
+                  Object.assign(
+                    await addressDecorator(ETHBalances[b].address, AddressesRepository, false, true),
+                    { balance: ETHBalances[b].balance, updatedAt: new Date() }
+                  )
+                )
               }
             }
 
             // Getting addresses from events
             let addressesForCheckTokensBalance = new Set()
-            // const $or = []
+            const $or = []
             for (let i = 0; i < transaction.events.length; i++) {
               const event = transaction.events[i]
               if (
@@ -49,14 +59,14 @@ repositories
                 addressesForCheckTokensBalance.add(event.data.from.address)
                 addressesForCheckTokensBalance.add(event.data.to.address)
 
-                // $or.push({ [`tokens.${event.address.address}.updatedAt`]: { $lt: transaction.createdAt } })
+                $or.push({ [`tokens.${event.address.address}.updatedAt`]: { $gt: transaction.createdAt } })
               }
             }
 
             let addressesForUpdateTokensBalanceExistsList = []
             addressesForCheckTokensBalance = Array.from(addressesForCheckTokensBalance)
             if (addressesForCheckTokensBalance.length) {
-              addressesForUpdateTokensBalanceExistsList = (await AddressesRepository.find({ address: { $in: addressesForCheckTokensBalance }/*, $or*/ }).toArray()).map(address => address.address)
+              addressesForUpdateTokensBalanceExistsList = (await AddressesRepository.find({ address: { $in: addressesForCheckTokensBalance }, $or }).toArray()).map(address => address.address)
             }
 
             // Get token balance
@@ -70,7 +80,7 @@ repositories
                 typeof event.address.data.decimals !== 'undefined'
                 ) {
                 const contract = ethereum.getContract(event.address.address, event.address.instanceOf)
-                if (addressesForUpdateTokensBalanceExistsList.includes(event.data.from.address)) {
+                if (!addressesForUpdateTokensBalanceExistsList.includes(event.data.from.address)) {
                   promises.push(
                     contract.methods.balanceOf(event.data.from.address).call()
                       .then(async balance => {
@@ -91,7 +101,7 @@ repositories
                       })
                   )
                 }
-                if (addressesForUpdateTokensBalanceExistsList.includes(event.data.to.address)) {
+                if (!addressesForUpdateTokensBalanceExistsList.includes(event.data.to.address)) {
                   promises.push(
                     contract.methods.balanceOf(event.data.to.address).call()
                       .then(async balance => {
@@ -136,10 +146,6 @@ repositories
           }
         } else {
           log(`Transaction ${hash} not found`)
-        }
-
-        if (global.gc) {
-          setInterval(() => global.gc(), 5000)
         }
 
         done()

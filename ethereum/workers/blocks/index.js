@@ -11,6 +11,10 @@ const repositories = require('../../../db/repositories')
 const contractsProcessingPool = new TasksPool(CONTRACTS_PROCESSING)
 const eventsProcessingPool = new TasksPool(EVENTS_PROCESSING)
 
+if (global.gc) {
+  setInterval(() => global.gc(), 5000)
+}
+
 Promise.all([
   repositories.connect(),
   contractsProcessingPool.connectAsWriter(),
@@ -76,10 +80,6 @@ Promise.all([
         await BlocksReposiroty.insert(block)
 
         log(`[#${blockNumber}] Done (tx=${transactions.length})`)
-
-        if (global.gc) {
-          setInterval(() => global.gc(), 5000)
-        }
 
         done()
       } catch (error) {
