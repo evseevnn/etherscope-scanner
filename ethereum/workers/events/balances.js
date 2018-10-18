@@ -25,7 +25,7 @@ repositories
             // Balances processing
             log('Getting addresses for update ETH balance')
             // Check addresses for update ETH balance
-            const addressesForCheckEthBalance = (await AddressesRepository.find({ address: { $in: [transaction.from.address, transaction.to.address] }, updatedAt: { $lt: transaction.createdAt } }).toArray()).map(address => address.address)
+            const addressesForCheckEthBalance = (await AddressesRepository.find({ address: { $in: [transaction.from.address, transaction.to.address] }/*, updatedAt: { $lt: transaction.createdAt }*/ }).toArray()).map(address => address.address)
             let decoratedAddresses = []
             if (addressesForCheckEthBalance) {
               log(`[${hash}] Getting ETH balances`)
@@ -49,7 +49,7 @@ repositories
                 addressesForCheckTokensBalance.add(event.data.from.address)
                 addressesForCheckTokensBalance.add(event.data.to.address)
 
-                $or.push({ [`tokens.${event.address.address}.updatedAt`]: { $lt: transaction.createdAt } })
+                // $or.push({ [`tokens.${event.address.address}.updatedAt`]: { $lt: transaction.createdAt } })
               }
             }
 
@@ -124,7 +124,7 @@ repositories
             if (decoratedAddresses.length) {
               await Promise.all([
                 AddressesRepository.update(decoratedAddresses, [ 'address' ], true),
-                TransactionsRepository.update(transaction, ['hash'])
+                TransactionsRepository.update(transaction, [ 'hash' ])
               ])
               log(`[${hash}] Balances saved for addresses: ${decoratedAddresses.map(address => address.address).join(', ')}`)
             } else {
