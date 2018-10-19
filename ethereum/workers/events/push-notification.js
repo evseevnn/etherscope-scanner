@@ -14,7 +14,7 @@ const sendNotification = (data) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      Authorization: 'Basic NGEwMGZmMjItY2NkNy0xMWUzLTk5ZDUtMDAwYzI5NDBlNjJj'
+      Authorization: `Basic ${process.env.ONESIGNAL_REST_API_KEY}`
     }
   }
 
