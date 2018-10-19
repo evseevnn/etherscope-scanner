@@ -54,54 +54,29 @@ class Ethereum extends EventEmitter {
    * @return {Promise<Object>}
    */
   async getBlockData(blockNumber) {
-    return new Promise(async (resolve) => {
-      // Getting block and transactions data
-      const block = await this.web3.eth.getBlock(blockNumber, true)
-      if (block.extraData.length && block.extraData.startsWith('0x')) {
-        block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
-      }
-      const transactions = Array.from(block.transactions)
-      // let gottedReceipts = 0
-      try {
-        if (transactions.length) {
-          // Getting operations data
-          let lastIndex = 0
-          let forRequest = transactions.slice(lastIndex, 20)
-          const receipts = []
-          while (forRequest.length > 0) {
-            const promises = forRequest.map(transaction => this.web3.eth.getTransactionReceipt(transaction.hash))
-            receipts.push(...await Promise.all(promises))
-            for (let i = lastIndex; i < lastIndex + forRequest.length; i++) {
-              transactions[i].receipt = receipts[i]
-            }
-            lastIndex += 20
-            forRequest = transactions.slice(lastIndex, lastIndex + 20)
-          }
-          resolve({ block, transactions })
-          // const batch = new this.web3.BatchRequest()
-          // for (let index = 0; index < transactions.length; index++) {
-          //   batch.add(this.web3.eth.getTransactionReceipt.request(transactions[index].hash, (error, data) => {
-          //     if (error) {
-          //       throw new Error(error)
-          //     }
-          //     transactions[index].receipt = data
-          //     gottedReceipts++
-          //     if (gottedReceipts === transactions.length) {
-          //       resolve({ block, transactions })
-          //     }
-          //   }))
-          // }
-          // batch.execute()
-        } else {
-          resolve({ block, transactions })
+    // Getting block and transactions data
+    const block = await this.web3.eth.getBlock(blockNumber, true)
+    if (block.extraData.length && block.extraData.startsWith('0x')) {
+      block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
+    }
+    const transactions = Array.from(block.transactions)
+    // let gottedReceipts = 0
+    if (transactions.length) {
+      // Getting operations data
+      let lastIndex = 0
+      let forRequest = transactions.slice(lastIndex, 20)
+      const receipts = []
+      while (forRequest.length > 0) {
+        const promises = forRequest.map(transaction => this.web3.eth.getTransactionReceipt(transaction.hash))
+        receipts.push(...await Promise.all(promises))
+        for (let i = lastIndex; i < lastIndex + forRequest.length; i++) {
+          transactions[i].receipt = receipts[i]
         }
-      } catch (error) {
-        log(error.toString())
-        return new Promise((resolve, reject) => {
-          setTimeout(() => resolve(this.getBlockData(blockNumber)), 1000)
-        })
+        lastIndex += 20
+        forRequest = transactions.slice(lastIndex, lastIndex + 20)
       }
-    })
+    }
+    return { block, transactions }
   }
 
   /**

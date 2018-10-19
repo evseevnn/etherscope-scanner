@@ -11,10 +11,6 @@ const repositories = require('../../../db/repositories')
 const contractsProcessingPool = new TasksPool(CONTRACTS_PROCESSING)
 const eventsProcessingPool = new TasksPool(EVENTS_PROCESSING)
 
-if (global.gc) {
-  setInterval(() => global.gc(), 5000)
-}
-
 Promise.all([
   repositories.connect(),
   contractsProcessingPool.connectAsWriter(),
@@ -41,10 +37,9 @@ Promise.all([
 
         if (transactions.length) {
           // Get exists transactions for block
-          const existsTransactions = await TransactionsRepository.find({ blockNumber }).toArray()
-          const existsHashes = existsTransactions.map(transaction => transaction.hash)
+          const existsHashes = (await TransactionsRepository.find({ blockNumber }).toArray()).map(transaction => transaction.hash)
           // clean
-          transactions = transactions.filter(transaction => !transaction.processed && !existsHashes.includes(transaction.hash))
+          transactions = transactions.filter(transaction => !existsHashes.includes(transaction.hash))
           // Decorate transactions
           for (let i = 0; i < transactions.length; i++) {
             const decoratedBeforeTransaction = await transactionBeforeSaveDecorator(transactions[i], AddressesRepository)
@@ -81,7 +76,13 @@ Promise.all([
 
         log(`[#${blockNumber}] Done (tx=${transactions.length})`)
 
-        done()
+
+        if (global.gc) {
+          global.gc()
+          setTimeout(() => done(), 10)
+        } else {
+          setTimeout(() => done(), 10)
+        }
       } catch (error) {
         log(`[#${blockNumber}] processing error`, error)
         process.exit()
