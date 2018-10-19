@@ -29,7 +29,11 @@ repositories
             // Balances processing
             log('Getting addresses for update ETH balance')
             // Check addresses for update ETH balance
-            const noNeedForCheckAddresses = (await AddressesRepository.find({ address: { $in: [transaction.from.address, transaction.to.address] }, updatedAt: { $gt: transaction.createdAt } }).toArray()).map(address => address.address)
+            const query = { address: { $in: [transaction.from.address, transaction.to.address] }, updatedAt: { $gt: transaction.createdAt } }
+            if (process.env.BALANCE_FETCH_FORCE) {
+              delete query.updatedAt
+            }
+            const noNeedForCheckAddresses = (await AddressesRepository.find(query).toArray()).map(address => address.address)
             let decoratedAddresses = []
             const addressesForCheckEthBalance = [transaction.from.address, transaction.to.address].filter(address => !noNeedForCheckAddresses.includes(address))
             if (addressesForCheckEthBalance) {
@@ -48,7 +52,6 @@ repositories
 
             // Getting addresses from events
             let addressesForCheckTokensBalance = new Set()
-            const $or = []
             for (let i = 0; i < transaction.events.length; i++) {
               const event = transaction.events[i]
               if (
@@ -58,18 +61,11 @@ repositories
               ) {
                 addressesForCheckTokensBalance.add(event.data.from.address)
                 addressesForCheckTokensBalance.add(event.data.to.address)
-
-                $or.push({ [`tokens.${event.address.address}.updatedAt`]: { $gt: transaction.createdAt } })
               }
             }
 
-            let addressesForUpdateTokensBalanceExistsList = []
-            addressesForCheckTokensBalance = Array.from(addressesForCheckTokensBalance)
-            if (addressesForCheckTokensBalance.length) {
-              addressesForUpdateTokensBalanceExistsList = (await AddressesRepository.find({ address: { $in: addressesForCheckTokensBalance }, $or }).toArray()).map(address => address.address)
-            }
-
             // Get token balance
+            const checkedAddresses = new Set()
             log(`[${hash}] Getting tokens balances`)
             const promises = []
             for (let i = 0; i < transaction.events.length; i++) {
@@ -80,7 +76,7 @@ repositories
                 typeof event.address.data.decimals !== 'undefined'
                 ) {
                 const contract = ethereum.getContract(event.address.address, event.address.instanceOf)
-                if (!addressesForUpdateTokensBalanceExistsList.includes(event.data.from.address)) {
+                if (!checkedAddresses.has(event.address.address + event.data.from.address)) {
                   promises.push(
                     contract.methods.balanceOf(event.data.from.address).call()
                       .then(async balance => {
@@ -100,8 +96,9 @@ repositories
                         return address
                       })
                   )
+                  checkedAddresses.add(event.address.address + event.data.from.address)
                 }
-                if (!addressesForUpdateTokensBalanceExistsList.includes(event.data.to.address)) {
+                if (!checkedAddresses.has(event.address.address + event.data.to.address)) {
                   promises.push(
                     contract.methods.balanceOf(event.data.to.address).call()
                       .then(async balance => {
@@ -121,6 +118,7 @@ repositories
                         return address
                       })
                   )
+                  checkedAddresses.add(event.address.address + event.data.to.address)
                 }
               }
             }
