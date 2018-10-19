@@ -7,7 +7,7 @@ module.exports = async (address, AddressesRepository, lightMode = false, include
   let returnData = { address, type: 'address', balance: 0, tokens: {} }
 
   if (!lightMode) {
-    const [ addressData ] = await AddressesRepository.find({ address }, { opcode: -1 }).limit(1).toArray()
+    const [ addressData ] = await AddressesRepository.find({ address }, { opcode: false }).limit(1).toArray()
     if (addressData) {
       returnData = addressData
     }

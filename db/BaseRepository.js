@@ -9,8 +9,8 @@ class BaseRepository {
     throw new Error('Not Implemented')
   }
 
-  find(filter, fields) {
-    return this.collection.find(filter, fields)
+  find(filter, projection) {
+    return this.collection.find(filter, { projection })
   }
 
   count(filter) {
