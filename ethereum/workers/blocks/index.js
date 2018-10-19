@@ -6,6 +6,7 @@ const Ethereum = require('../..')
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 const transactionBeforeSaveDecorator = require('../../decorators/transactionBeforeSaveDecorator')
 const transactionAfterSaveDecorator = require('../../decorators/transactionAfterSaveDecorator')
+const addressDecorator = require('../../decorators/addressDecorator')
 const repositories = require('../../../db/repositories')
 
 const contractsProcessingPool = new TasksPool(CONTRACTS_PROCESSING)
@@ -53,36 +54,114 @@ Promise.all([
                 createdAt: new Date(block.timestamp * 1000)
               })
           }
+        }
 
+        // Getting balances
+        // ----------------
+
+        // Getting all ddresses from transactions
+        const addressesForGetETHBalances = Array.from(new Set([].concat(...transactions.map(transaction => [transaction.from.address, transaction.to.address]))))
+
+        let decoratedAddresses = []
+        if (addressesForGetETHBalances.length > 0) {
+          log(`[${blockNumber}] Getting ETH balances for ${addressesForGetETHBalances.length} addresses`)
+          // Update ethereum balance
+          const ETHBalances = await ethereum.getBalances(addressesForGetETHBalances)
+          for (let b = 0; b < ETHBalances.length; b++) {
+            decoratedAddresses.push(
+              Object.assign(
+                await addressDecorator(ETHBalances[b].address, AddressesRepository, false, true),
+                { balance: ETHBalances[b].balance, updatedAt: new Date() }
+              )
+            )
+          }
+        }
+
+        const contractAddressesForUpdate = {}
+        const contracts = {}
+        const allEventsOfBlock = [].concat(...transactions.map(transaction => transaction.events))
+
+        for (let e = 0; e < allEventsOfBlock.length; e++) {
+          const event = allEventsOfBlock[e]
+          if (
+            event.name === 'Transfer' &&
+            event.address.instanceOf.includes('ERC20Basic') &&
+            typeof event.address.data.decimals !== 'undefined'
+          ) {
+            if (typeof contractAddressesForUpdate[event.address.address] === 'undefined') {
+              contractAddressesForUpdate[event.address.address] = new Set()
+              contracts[event.address.address] = event.address
+            }
+            contractAddressesForUpdate[event.address.address].add(event.data.from.address)
+            contractAddressesForUpdate[event.address.address].add(event.data.to.address)
+          }
+        }
+
+        const promises = []
+        const contractsAddresses = Object.keys(contractAddressesForUpdate)
+        for (let c = 0; c < contractsAddresses.length; c++) {
+          const contract = ethereum.getContract(contractsAddresses[c], contracts[contractsAddresses[c]].instanceOf)
+          for (let a = 0; a < contractAddressesForUpdate[contractsAddresses[c]].length; a++) {
+            const addressForUpdate = contractAddressesForUpdate[contractsAddresses[c]][a]
+            promises.push(
+              contract.methods.balanceOf(addressForUpdate).call()
+                .then(async balance => {
+                  const address = await addressDecorator(addressForUpdate, AddressesRepository, false, true)
+                  address.tokens = Object.assign(
+                    address.tokens,
+                    {
+                      [contractsAddresses[c]]: {
+                        address: contractsAddresses[c],
+                        data: contracts[contractsAddresses[c]].data,
+                        value: (balance / (Math.pow(10, contracts[contractsAddresses[c]].data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, ''),
+                        updatedAt: new Date()
+                      }
+                    }
+                  )
+                  address.updatedAt = new Date()
+                  return address
+                })
+            )
+          }
+        }
+
+        // Getting tokens balances'
+        log(`[${blockNumber}] Getting tokens balances for ${promises.length} addresses`)
+        const addressesFromEvents = await Promise.all(promises)
+        if (addressesFromEvents.length) {
+          decoratedAddresses.concat(addressesFromEvents)
+        }
+
+        if (decoratedAddresses.length) {
+          await Promise.all([
+            AddressesRepository.update(decoratedAddresses, [ 'address' ], true)
+          ])
+          log(`[${blockNumber}] Balances saved.`)
+        }
+        // END
+        // -----------------
+
+        if (transactions.length) {
           // Save last transactions
           await TransactionsRepository.update(transactions, ['hash'], true)
 
           log(`[#${blockNumber}] Send ${transactions.length} transactions to processing`)
           for (let i = 0; i < transactions.length; i++) {
-            await Promise.all([
-              // Send to contract processing
-              contractsProcessingPool.send({ hash: transactions[i].hash }),
-              // Send to balance updating
-              eventsProcessingPool.send({ hash: transactions[i].hash })
-            ])
+            await contractsProcessingPool.send({ hash: transactions[i].hash })
           }
 
           // Replace transaction object on transaction hash in block
           block.transactions = block.transactions.map(transaction => transaction.hash)
         }
-
         // Save block at last
         await BlocksReposiroty.insert(block)
 
         log(`[#${blockNumber}] Done (tx=${transactions.length})`)
 
-
         if (global.gc) {
           global.gc()
-          setTimeout(() => done(), 10)
-        } else {
-          setTimeout(() => done(), 10)
         }
+        setImmediate(() => done())
       } catch (error) {
         log(`[#${blockNumber}] processing error`, error)
         process.exit()
