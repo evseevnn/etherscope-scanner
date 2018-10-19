@@ -101,8 +101,9 @@ Promise.all([
         const contractsAddresses = Object.keys(contractAddressesForUpdate)
         for (let c = 0; c < contractsAddresses.length; c++) {
           const contract = ethereum.getContract(contractsAddresses[c], contracts[contractsAddresses[c]].instanceOf)
-          for (let a = 0; a < contractAddressesForUpdate[contractsAddresses[c]].length; a++) {
-            const addressForUpdate = contractAddressesForUpdate[contractsAddresses[c]][a]
+          const addressesWithContract = Array.from(contractAddressesForUpdate[contractsAddresses[c]])
+          for (let a = 0; a < addressesWithContract.length; a++) {
+            const addressForUpdate = addressesWithContract[a]
             promises.push(
               contract.methods.balanceOf(addressForUpdate).call()
                 .then(async balance => {
@@ -125,7 +126,7 @@ Promise.all([
           }
         }
 
-        // Getting tokens balances'
+        // Getting tokens balances
         log(`[${blockNumber}] Getting tokens balances for ${promises.length} addresses`)
         const addressesFromEvents = await Promise.all(promises)
         if (addressesFromEvents.length) {
