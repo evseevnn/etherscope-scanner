@@ -58,7 +58,6 @@ Promise.all([
 
         // Getting balances
         // ----------------
-
         // Getting all ddresses from transactions
         const addressesForGetETHBalances = Array.from(new Set([].concat(...transactions.map(transaction => [transaction.from.address, transaction.to.address]))))
 
@@ -121,7 +120,7 @@ Promise.all([
                   )
                   address.updatedAt = new Date()
                   return address
-                })
+                }).catch(error => log(`Error balance update for contract ${contractsAddresses[c]}`, error.toString()))
             )
           }
         }
@@ -134,9 +133,7 @@ Promise.all([
         }
 
         if (decoratedAddresses.length) {
-          await Promise.all([
-            AddressesRepository.update(decoratedAddresses, [ 'address' ], true)
-          ])
+          await AddressesRepository.update(decoratedAddresses, [ 'address' ], true)
           log(`[${blockNumber}] Balances saved.`)
         }
         // END
