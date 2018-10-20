@@ -152,10 +152,11 @@ Promise.all([
               await contractsProcessingPool.send({ hash: transactions[i].hash })
             }
           }
-
-          // Replace transaction object on transaction hash in block
-          block.transactions = block.transactions.map(transaction => transaction.hash)
         }
+
+        // Replace transaction object on transaction hash in block
+        block.transactions = block.transactions.map(transaction => transaction.hash)
+
         // Save block at last
         await BlocksReposiroty.insert(block)
 
