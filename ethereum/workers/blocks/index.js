@@ -120,14 +120,14 @@ Promise.all([
                   )
                   address.updatedAt = new Date()
                   return address
-                }).catch(error => log(`Error balance update for contract ${contractsAddresses[c]}`, error.toString()))
+                }).catch(error => { log(`Error balance update for contract ${contractsAddresses[c]}`, error.toString()) })
             )
           }
         }
 
         // Getting tokens balances
         log(`[${blockNumber}] Getting tokens balances for ${promises.length} addresses`)
-        const addressesFromEvents = await Promise.all(promises)
+        const addressesFromEvents = (await Promise.all(promises)).filter(address => typeof address !== 'undefined')
         if (addressesFromEvents.length) {
           decoratedAddresses.concat(addressesFromEvents)
         }
