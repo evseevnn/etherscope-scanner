@@ -52,13 +52,14 @@ repositories
 
             const processedAddresses = await contractsProcessing({ addresses: Array.from(contractAddresses), AddressesRepository })
 
+            let decoratedTransaction = {}
             if (processedAddresses.length) {
               // re-decorate transaction
-              const decoratedTransaction = await transactionAfterSaveDecorator(transaction, InterfacesRepository, AddressesRepository)
-              transaction = Object.assign(transaction, decoratedTransaction, { isContractProcessed: true })
-              // Save last transactions
-              await TransactionsRepository.update(transaction, ['hash'])
+              decoratedTransaction = await transactionAfterSaveDecorator(transaction, InterfacesRepository, AddressesRepository)
             }
+            transaction = Object.assign(transaction, decoratedTransaction, { isContractProcessed: true })
+            // Save last transactions
+            await TransactionsRepository.update(transaction, ['hash'])
 
             log(`[${hash}] Done`)
           } else {

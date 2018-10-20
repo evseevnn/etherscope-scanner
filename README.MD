@@ -34,6 +34,7 @@ db.getCollection('transactions').createIndex({blockNumber: -1}, {background: tru
 db.getCollection('transactions').createIndex({blockNumber: -1, transactionIndex: -1}, {background: true})
 db.getCollection('transactions').createIndex({createdAt: -1}, {background: true, expireAfterSeconds: 2678400, partialFilterExpression: { isContractProcessed: true }})
 db.getCollection('transactions').createIndex({addedAt: -1}, {background: true, expireAfterSeconds: 10800, partialFilterExpression: { cache: true }})
+db.getCollection('transactions').createIndex({isContractProcessed: 1}, {background: true})
 ```
 
 # Parity
