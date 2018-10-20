@@ -6,6 +6,7 @@ const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
  * ONLY FOR CONTRACTS ADDRESSES
  */
 module.exports = async ({ addresses, AddressesRepository }) => {
+  const addressesForSave = []
   if (addresses.length) {
     // Get get exists contracts
     const existContractsAddresses = (await AddressesRepository.find({ address: { $in: addresses }, opcode: { $exists: true, $ne: '' } }).toArray()).map(contract => contract.address)
@@ -13,9 +14,9 @@ module.exports = async ({ addresses, AddressesRepository }) => {
 
     if (addresses.length) {
       // Save contracts
-      const addressesForSave = []
       for (let i = 0; i < addresses.length; i++) {
         const address = addresses[i]
+        log(`Checing ${address}`)
         const opcode = await ethereum.getContractOpcode(address)
         if (opcode) {
           const interfaces = await ethereum.getContractInterfaces(address, opcode)
@@ -46,4 +47,6 @@ module.exports = async ({ addresses, AddressesRepository }) => {
       }
     }
   }
+
+  return addressesForSave
 }

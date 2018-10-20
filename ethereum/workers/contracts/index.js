@@ -50,14 +50,15 @@ repositories
               contractAddresses.add(log.address)
             })
 
-            log(`[${transaction.hash}] Addresses for checking: `, Array.from(contractAddresses))
-            await contractsProcessing({ addresses: Array.from(contractAddresses), AddressesRepository })
+            const processedAddresses = await contractsProcessing({ addresses: Array.from(contractAddresses), AddressesRepository })
 
-            // re-decorate transaction
-            const decoratedTransaction = await transactionAfterSaveDecorator(transaction, InterfacesRepository, AddressesRepository)
-            transaction = Object.assign(transaction, decoratedTransaction, { isContractProcessed: true })
-            // Save last transactions
-            await TransactionsRepository.update(transaction, ['hash'])
+            if (processedAddresses.length) {
+              // re-decorate transaction
+              const decoratedTransaction = await transactionAfterSaveDecorator(transaction, InterfacesRepository, AddressesRepository)
+              transaction = Object.assign(transaction, decoratedTransaction, { isContractProcessed: true })
+              // Save last transactions
+              await TransactionsRepository.update(transaction, ['hash'])
+            }
 
             log(`[${hash}] Done`)
           } else {
