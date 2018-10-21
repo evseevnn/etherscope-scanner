@@ -4,7 +4,7 @@ const EventEmitter = require('events')
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 
-const RESUEST_PER_TIME = 30
+const RESUEST_PER_TIME = 5
 const REQUEST_INTERVAL = 1000 // every second
 const contractsInterfaces = require('./interfaces')
 const contractsFuncHashes = {}
@@ -71,6 +71,9 @@ class Ethereum extends EventEmitter {
         const promises = forRequest.map(transaction => this.web3.eth.getTransactionReceipt(transaction.hash))
         receipts.push(...await Promise.all(promises))
         for (let i = lastIndex; i < lastIndex + forRequest.length; i++) {
+          if (!receipts[i]) {
+            throw new Error(`No receipt for transaction ${transactions[i]}`)
+          }
           transactions[i].receipt = receipts[i]
         }
         lastIndex += RESUEST_PER_TIME
