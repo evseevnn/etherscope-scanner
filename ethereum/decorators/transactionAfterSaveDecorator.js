@@ -1,6 +1,7 @@
 const addressDecorator = require('./addressDecorator')
 const transactionInputDecorator = require('./transactionInputDecorator')
 const transactionEventsDecorator = require('./transactionEventsDecorator')
+const log = require('debug')('decorators:transaction-input-decorator')
 
 module.exports = async (transaction, InterfacesRepository, AddressesRepository) => {
   let decoratedTransaction = {}
@@ -42,27 +43,31 @@ module.exports = async (transaction, InterfacesRepository, AddressesRepository) 
     // Decode method
     if (decoratedTransaction.to && decoratedTransaction.to.type === 'contract' && decoratedTransaction.to.instanceOf && decoratedTransaction.to.instanceOf.length) {
       // Decorate Transfer operations
-      if (decoratedTransaction.to.instanceOf.includes('DetailedERC20') && !isNaN(decoratedTransaction.to.data.decimals)) {
-        decoratedTransaction.method = transactionInputDecorator(transaction, InterfacesRepository.interfaces, decoratedTransaction.to.instanceOf)
+      try {
+        if (decoratedTransaction.to.instanceOf.includes('DetailedERC20') && !isNaN(decoratedTransaction.to.data.decimals)) {
+          decoratedTransaction.method = transactionInputDecorator(transaction, InterfacesRepository.interfaces, decoratedTransaction.to.instanceOf)
 
-        // transfer
-        if (decoratedTransaction.method && decoratedTransaction.method.name === 'transfer' && decoratedTransaction.method.arguments[1]) {
-          decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
-          decoratedTransaction.method.arguments[1] = (decoratedTransaction.method.arguments[1] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
-        }
+          // transfer
+          if (decoratedTransaction.method && decoratedTransaction.method.name === 'transfer' && decoratedTransaction.method.arguments[1]) {
+            decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
+            decoratedTransaction.method.arguments[1] = (decoratedTransaction.method.arguments[1] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+          }
 
-        // approve
-        if (decoratedTransaction.method && decoratedTransaction.method.name === 'approve' && decoratedTransaction.method.arguments[1]) {
-          decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
-          decoratedTransaction.method.arguments[1] = (decoratedTransaction.method.arguments[1] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
-        }
+          // approve
+          if (decoratedTransaction.method && decoratedTransaction.method.name === 'approve' && decoratedTransaction.method.arguments[1]) {
+            decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
+            decoratedTransaction.method.arguments[1] = (decoratedTransaction.method.arguments[1] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+          }
 
-        // transferFrom
-        if (decoratedTransaction.method && decoratedTransaction.method.name === 'transferFrom' && decoratedTransaction.method.arguments[2]) {
-          decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
-          decoratedTransaction.method.arguments[1] = await addressDecorator(decoratedTransaction.method.arguments[1], AddressesRepository)
-          decoratedTransaction.method.arguments[2] = (decoratedTransaction.method.arguments[2] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+          // transferFrom
+          if (decoratedTransaction.method && decoratedTransaction.method.name === 'transferFrom' && decoratedTransaction.method.arguments[2]) {
+            decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
+            decoratedTransaction.method.arguments[1] = await addressDecorator(decoratedTransaction.method.arguments[1], AddressesRepository)
+            decoratedTransaction.method.arguments[2] = (decoratedTransaction.method.arguments[2] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+          }
         }
+      } catch (error) {
+        log('Error: ', error)
       }
     }
   }
