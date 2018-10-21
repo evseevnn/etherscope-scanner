@@ -4,7 +4,6 @@ const EventEmitter = require('events')
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 
-const RESUEST_PER_TIME = 15
 const REQUEST_INTERVAL = 1000 // every second
 const contractsInterfaces = require('./interfaces')
 const contractsFuncHashes = {}
@@ -55,32 +54,41 @@ class Ethereum extends EventEmitter {
    * @return {Promise<Object>}
    */
   async getBlockData(blockNumber) {
-    // Getting block and transactions data
-    const block = await this.web3.eth.getBlock(blockNumber, true)
-    if (block.extraData.length && block.extraData.startsWith('0x')) {
-      block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
-    }
-    const transactions = Array.from(block.transactions)
-    // let gottedReceipts = 0
-    if (transactions.length) {
-      // Getting operations data
-      let lastIndex = 0
-      let forRequest = transactions.slice(lastIndex, RESUEST_PER_TIME)
-      const receipts = []
-      while (forRequest.length > 0) {
-        const promises = forRequest.map(transaction => this.web3.eth.getTransactionReceipt(transaction.hash))
-        receipts.push(...await Promise.all(promises))
-        for (let i = lastIndex; i < lastIndex + forRequest.length; i++) {
-          if (!receipts[i]) {
-            throw new Error(`No receipt for transaction ${transactions[i]}`)
-          }
-          transactions[i].receipt = receipts[i]
-        }
-        lastIndex += RESUEST_PER_TIME
-        forRequest = transactions.slice(lastIndex, lastIndex + RESUEST_PER_TIME)
+    return new Promise(async (resolve) => {
+      // Getting block and transactions data
+      const block = await this.web3.eth.getBlock(blockNumber, true)
+      if (block.extraData.length && block.extraData.startsWith('0x')) {
+        block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
       }
-    }
-    return { block, transactions }
+      const transactions = Array.from(block.transactions)
+      let gottedReceipts = 0
+      try {
+        if (transactions.length) {
+          // Getting operations data
+          const batch = new this.web3.BatchRequest()
+          transactions.forEach((transaction, index) => {
+            batch.add(this.web3.eth.getTransactionReceipt.request(transaction.hash, (error, data) => {
+              if (error) {
+                throw new Error(error)
+              }
+              transactions[index].receipt = data
+              gottedReceipts++
+              if (gottedReceipts === transactions.length) {
+                resolve({ block, transactions })
+              }
+            }))
+          })
+          batch.execute()
+        } else {
+          resolve({ block, transactions })
+        }
+      } catch (error) {
+        log(error.toString())
+        return new Promise((resolve, reject) => {
+          setTimeout(() => resolve(this.getBlockData(blockNumber)), 1000)
+        })
+      }
+    })
   }
 
   /**
@@ -89,39 +97,23 @@ class Ethereum extends EventEmitter {
    * @return {Promise<Object>}
    */
   async getBalances(addresses) {
-    return new Promise(async (resolve) => {
+    return new Promise((resolve) => {
       const addressesBalances = []
-
       // Getting operations data
-      let lastIndex = 0
-      let forRequest = addresses.slice(lastIndex, RESUEST_PER_TIME)
-      const balances = []
-      while (forRequest.length > 0) {
-        const promises = forRequest.map(address => this.web3.eth.getBalance(address))
-        balances.push(...await Promise.all(promises))
-        for (let i = lastIndex; i < lastIndex + forRequest.length; i++) {
-          addressesBalances.push({ address: addresses[i], balance: this.web3.utils.fromWei(balances[i].toString(10), 'ether') })
-        }
-        lastIndex += RESUEST_PER_TIME
-        forRequest = addresses.slice(lastIndex, lastIndex + RESUEST_PER_TIME)
-      }
-
-      resolve(addressesBalances)
-      // Getting operations data
-      // const batch = new this.web3.BatchRequest()
-      // addresses = Array.from(new Set(addresses))
-      // addresses.forEach(address => {
-      //   batch.add(this.web3.eth.getBalance.request(address, (error, data) => {
-      //     if (error) {
-      //       throw new Error(error)
-      //     }
-      //     addressesBalances.push({ address, balance:  })
-      //     if (addressesBalances.length === addresses.length) {
-      //       resolve(addressesBalances)
-      //     }
-      //   }))
-      // })
-      // batch.execute()
+      const batch = new this.web3.BatchRequest()
+      addresses = Array.from(new Set(addresses))
+      addresses.forEach(address => {
+        batch.add(this.web3.eth.getBalance.request(address, (error, data) => {
+          if (error) {
+            throw new Error(error)
+          }
+          addressesBalances.push({ address, balance: this.web3.utils.fromWei(data.toString(10), 'ether') })
+          if (addressesBalances.length === addresses.length) {
+            resolve(addressesBalances)
+          }
+        }))
+      })
+      batch.execute()
     })
   }
 
@@ -131,7 +123,7 @@ class Ethereum extends EventEmitter {
    */
   async getContractOpcode(address) {
     try {
-      const { stdout: opcode, stderr } = await exec(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`, { maxBuffer: 1024 * 1024 })
+      const { stdout: opcode, stderr } = await exec(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`)
       if (stderr) {
         throw Error(`Error getting opcode for address ${address}`)
       }
