@@ -4,6 +4,7 @@ const EventEmitter = require('events')
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 
+const RESUEST_PER_TIME = 10
 const REQUEST_INTERVAL = 1000 // every second
 const contractsInterfaces = require('./interfaces')
 const contractsFuncHashes = {}
@@ -64,7 +65,7 @@ class Ethereum extends EventEmitter {
     if (transactions.length) {
       // Getting operations data
       let lastIndex = 0
-      let forRequest = transactions.slice(lastIndex, 20)
+      let forRequest = transactions.slice(lastIndex, RESUEST_PER_TIME)
       const receipts = []
       while (forRequest.length > 0) {
         const promises = forRequest.map(transaction => this.web3.eth.getTransactionReceipt(transaction.hash))
@@ -72,8 +73,8 @@ class Ethereum extends EventEmitter {
         for (let i = lastIndex; i < lastIndex + forRequest.length; i++) {
           transactions[i].receipt = receipts[i]
         }
-        lastIndex += 20
-        forRequest = transactions.slice(lastIndex, lastIndex + 20)
+        lastIndex += RESUEST_PER_TIME
+        forRequest = transactions.slice(lastIndex, lastIndex + RESUEST_PER_TIME)
       }
     }
     return { block, transactions }
@@ -90,7 +91,7 @@ class Ethereum extends EventEmitter {
 
       // Getting operations data
       let lastIndex = 0
-      let forRequest = addresses.slice(lastIndex, 20)
+      let forRequest = addresses.slice(lastIndex, RESUEST_PER_TIME)
       const balances = []
       while (forRequest.length > 0) {
         const promises = forRequest.map(address => this.web3.eth.getBalance(address))
@@ -98,8 +99,8 @@ class Ethereum extends EventEmitter {
         for (let i = lastIndex; i < lastIndex + forRequest.length; i++) {
           addressesBalances.push({ address: addresses[i], balance: this.web3.utils.fromWei(balances[i].toString(10), 'ether') })
         }
-        lastIndex += 20
-        forRequest = addresses.slice(lastIndex, lastIndex + 20)
+        lastIndex += RESUEST_PER_TIME
+        forRequest = addresses.slice(lastIndex, lastIndex + RESUEST_PER_TIME)
       }
 
       resolve(addressesBalances)
