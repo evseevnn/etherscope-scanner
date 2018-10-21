@@ -4,7 +4,7 @@ const EventEmitter = require('events')
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 
-const RESUEST_PER_TIME = 10
+const RESUEST_PER_TIME = 30
 const REQUEST_INTERVAL = 1000 // every second
 const contractsInterfaces = require('./interfaces')
 const contractsFuncHashes = {}
