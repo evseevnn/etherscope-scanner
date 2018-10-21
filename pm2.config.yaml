@@ -18,7 +18,7 @@ apps:
     autorestart: true
     args: --expose-gc
     env:
-      NSQ_READER_MAX_IN_FLIGHT: 5
+      NSQ_READER_MAX_IN_FLIGHT: 1
 
   - script: ./ethereum/workers/blocks/index.js
     name: catching-up-blocks-listner
