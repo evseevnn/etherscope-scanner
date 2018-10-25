@@ -107,7 +107,6 @@ Promise.all([
             const addressForUpdate = addressesWithContract[a]
             promises.push(
               new Promise((resolve, reject) => {
-                log(`[${contractsAddresses[c]}] Get balance for address ${addressForUpdate}`)
                 contract.methods.balanceOf(addressForUpdate).call()
                   .then(balance => addressDecorator(addressForUpdate, AddressesRepository, false, true).then(address => ({ address, balance })))
                   .then(({ address, balance }) => {
@@ -150,7 +149,7 @@ Promise.all([
           }
         }
 
-        log(`[${blockNumber}] Got balances for addresses ${decoratedAddresses.length}`)
+        log(`[${blockNumber}] Got balances for addresses ${Object.keys(decoratedAddresses).length}`)
         if (Object.keys(decoratedAddresses).length) {
           await AddressesRepository.update(Object.values(decoratedAddresses), [ 'address' ], true)
           log(`[${blockNumber}] Balances saved.`)
