@@ -53,6 +53,10 @@ Promise.all([
                 addedAt: new Date(),
                 createdAt: new Date(block.timestamp * 1000)
               })
+            // if no contract no need to do contract processing
+            if (transactions[i].receipt && !transactions[i].receipt.contractAddress) {
+              transactions[i].isContractProcessed = true
+            }
           }
         }
 
@@ -157,6 +161,10 @@ Promise.all([
         // END
         // -----------------
 
+        // if has flag for no save transaction we will skip all transaction what not about contract creation
+        if (process.env.NO_SAVE_TRANSACTION) {
+          transactions = transactions.filter(transaction => (transaction.receipt && transaction.receipt.contractAddress))
+        }
         if (transactions.length) {
           // Save last transactions
           await TransactionsRepository.update(transactions, ['hash'], true)
