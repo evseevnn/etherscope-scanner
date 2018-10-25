@@ -121,6 +121,7 @@ Promise.all([
                       }
                     )
                     address.updatedAt = new Date()
+                    log(address)
                     resolve(address)
                   }).catch(error => reject(error))
               }).catch(error => { log(`Error balance update for contract ${contractsAddresses[c]}`, error.toString()) })
@@ -136,8 +137,8 @@ Promise.all([
         }
 
         log(`[${blockNumber}] Got balances for addresses ${decoratedAddresses.length}`)
-        console.log(decoratedAddresses)
         if (decoratedAddresses.length) {
+          console.log(decoratedAddresses[0])
           await AddressesRepository.update(decoratedAddresses, [ 'address' ], true)
           log(`[${blockNumber}] Balances saved.`)
         }
