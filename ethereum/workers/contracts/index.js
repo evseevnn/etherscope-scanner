@@ -19,7 +19,7 @@ repositories
         log(`[${hash}] Start processing transaction`)
         try {
           // Getting all block data for another process
-          let [ transaction ] = await TransactionsRepository.find({ hash, isContractProcessed: { $ne: true } }).toArray()
+          let [ transaction ] = await TransactionsRepository.find({ hash, receipt: { $exists: true, $ne: null }, isContractProcessed: { $ne: true } }).toArray()
 
           if (transaction) {
             // Contract processing
@@ -63,7 +63,7 @@ repositories
 
             log(`[${hash}] Done`)
           } else {
-            log(`[${hash}] Not found. Transaction can be processed already`)
+            log(`[${hash}] Not found. Transaction can be processed already or has no receipt`)
           }
 
           done()
