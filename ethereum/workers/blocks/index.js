@@ -131,11 +131,12 @@ Promise.all([
         // Getting tokens balances
         log(`[${blockNumber}] Getting tokens balances for ${promises.length} addresses`)
         const addressesFromEvents = (await Promise.all(promises)).filter(address => address)
-        log(`[${blockNumber}] Got balances for addresses ${addressesFromEvents.map(address => address.address).join(', ')}`)
         if (addressesFromEvents.length) {
           decoratedAddresses.concat(addressesFromEvents)
         }
 
+        log(`[${blockNumber}] Got balances for addresses ${decoratedAddresses.length}`)
+        console.log(decoratedAddresses)
         if (decoratedAddresses.length) {
           await AddressesRepository.update(decoratedAddresses, [ 'address' ], true)
           log(`[${blockNumber}] Balances saved.`)
