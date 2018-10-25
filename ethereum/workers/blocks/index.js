@@ -104,30 +104,34 @@ Promise.all([
           for (let a = 0; a < addressesWithContract.length; a++) {
             const addressForUpdate = addressesWithContract[a]
             promises.push(
-              contract.methods.balanceOf(addressForUpdate).call()
-                .then(async balance => {
-                  const address = await addressDecorator(addressForUpdate, AddressesRepository, false, true)
-                  address.tokens = Object.assign(
-                    address.tokens,
-                    {
-                      [contractsAddresses[c]]: {
-                        address: contractsAddresses[c],
-                        data: contracts[contractsAddresses[c]].data,
-                        value: (balance / (Math.pow(10, contracts[contractsAddresses[c]].data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, ''),
-                        updatedAt: new Date()
+              new Promise((resolve, reject) => {
+                log(`[${contractsAddresses[c]}] Get balance for address ${addressForUpdate}`)
+                contract.methods.balanceOf(addressForUpdate).call()
+                  .then(balance => addressDecorator(addressForUpdate, AddressesRepository, false, true).then(address => ({ address, balance })))
+                  .then(({ address, balance }) => {
+                    address.tokens = Object.assign(
+                      address.tokens,
+                      {
+                        [contractsAddresses[c]]: {
+                          address: contractsAddresses[c],
+                          data: contracts[contractsAddresses[c]].data,
+                          value: (balance / (Math.pow(10, contracts[contractsAddresses[c]].data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, ''),
+                          updatedAt: new Date()
+                        }
                       }
-                    }
-                  )
-                  address.updatedAt = new Date()
-                  return address
-                }).catch(error => { log(`Error balance update for contract ${contractsAddresses[c]}`, error.toString()) })
+                    )
+                    address.updatedAt = new Date()
+                    resolve(address)
+                  }).catch(error => reject(error))
+              }).catch(error => { log(`Error balance update for contract ${contractsAddresses[c]}`, error.toString()) })
             )
           }
         }
 
         // Getting tokens balances
         log(`[${blockNumber}] Getting tokens balances for ${promises.length} addresses`)
-        const addressesFromEvents = (await Promise.all(promises)).filter(address => typeof address !== 'undefined')
+        const addressesFromEvents = (await Promise.all(promises)).filter(address => address)
+        log(`[${blockNumber}] Got balances for addresses ${addressesFromEvents.map(address => address.address).join(', ')}`)
         if (addressesFromEvents.length) {
           decoratedAddresses.concat(addressesFromEvents)
         }
