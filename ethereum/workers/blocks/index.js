@@ -139,7 +139,7 @@ Promise.all([
 
         log(`[${blockNumber}] Got balances for addresses ${decoratedAddresses.length}`)
         if (decoratedAddresses.length) {
-          console.log(allPromisesData)
+          console.log(allPromisesData[allPromisesData.length - 1])
           await AddressesRepository.update(decoratedAddresses, [ 'address' ], true)
           log(`[${blockNumber}] Balances saved.`)
         }
