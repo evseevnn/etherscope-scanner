@@ -123,7 +123,6 @@ Promise.all([
                       }
                     )
                     address.updatedAt = new Date()
-                    log(address)
                     resolve(address)
                   }).catch(error => reject(error))
               }).catch(error => { log(`Error balance update for contract ${contractsAddresses[c]}`, error.toString()) })
@@ -153,10 +152,7 @@ Promise.all([
 
         log(`[${blockNumber}] Got balances for addresses ${decoratedAddresses.length}`)
         if (Object.keys(decoratedAddresses).length) {
-          console.log(allPromisesData[allPromisesData.length - 1])
-          const result = await AddressesRepository.update(Object.values(decoratedAddresses), [ 'address' ], true)
-          log('Update info:')
-          console.log(result)
+          await AddressesRepository.update(Object.values(decoratedAddresses), [ 'address' ], true)
           log(`[${blockNumber}] Balances saved.`)
         }
         // END
