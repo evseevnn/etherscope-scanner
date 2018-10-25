@@ -61,18 +61,20 @@ Promise.all([
         // Getting all ddresses from transactions
         const addressesForGetETHBalances = Array.from(new Set([].concat(...transactions.map(transaction => [transaction.from.address, transaction.to.address]))))
 
-        let decoratedAddresses = []
+        let decoratedAddresses = {}
         if (addressesForGetETHBalances.length > 0) {
           log(`[${blockNumber}] Getting ETH balances for ${addressesForGetETHBalances.length} addresses`)
           // Update ethereum balance
           const ETHBalances = await ethereum.getBalances(addressesForGetETHBalances)
           for (let b = 0; b < ETHBalances.length; b++) {
-            decoratedAddresses.push(
-              Object.assign(
-                await addressDecorator(ETHBalances[b].address, AddressesRepository, false, true),
+            if (!decoratedAddresses[ETHBalances[b].address]) {
+              decoratedAddresses[ETHBalances[b].address] = await addressDecorator(ETHBalances[b].address, AddressesRepository, false, true)
+            } else {
+              decoratedAddresses[ETHBalances[b].address] = Object.assign(
+                decoratedAddresses[ETHBalances[b].address],
                 { balance: ETHBalances[b].balance, updatedAt: new Date() }
               )
-            )
+            }
           }
         }
 
@@ -133,14 +135,26 @@ Promise.all([
         log(`[${blockNumber}] Getting tokens balances for ${promises.length} addresses`)
         const allPromisesData = await Promise.all(promises)
         const addressesFromEvents = allPromisesData.filter(address => address)
-        if (addressesFromEvents.length) {
-          decoratedAddresses.concat(addressesFromEvents)
+        for (let afe = 0; afe < addressesFromEvents.length; afe++) {
+          if (!decoratedAddresses[addressesFromEvents[afe].address]) {
+            decoratedAddresses[addressesFromEvents[afe].address] = addressesFromEvents[afe]
+          } else {
+            decoratedAddresses[addressesFromEvents[afe].address] = Object.assign(
+              decoratedAddresses[addressesFromEvents[afe].address],
+              {
+                tokens: Object.assign(
+                  decoratedAddresses[addressesFromEvents[afe].address].tokens,
+                  addressesFromEvents[afe].tokens
+                )
+              }
+            )
+          }
         }
 
         log(`[${blockNumber}] Got balances for addresses ${decoratedAddresses.length}`)
-        if (decoratedAddresses.length) {
+        if (Object.keys(decoratedAddresses).length) {
           console.log(allPromisesData[allPromisesData.length - 1])
-          const result = await AddressesRepository.update(decoratedAddresses, [ 'address' ], true)
+          const result = await AddressesRepository.update(Object.values(decoratedAddresses), [ 'address' ], true)
           log('Update info:')
           console.log(result)
           log(`[${blockNumber}] Balances saved.`)
