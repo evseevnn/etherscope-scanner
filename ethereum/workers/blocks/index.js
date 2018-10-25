@@ -142,13 +142,15 @@ Promise.all([
         if (transactions.length) {
           // Save last transactions
           await TransactionsRepository.update(transactions, ['hash'], true)
-
-          if (!process.env.CATCHING_UP_MODE) {
-            log(`[${blockNumber}] Send ${transactions.length} transactions to processing`)
-            for (let i = 0; i < transactions.length; i++) {
+          log(`[${blockNumber}] Sending transactions to processing`)
+          let txCounter = 0
+          for (let i = 0; i < transactions.length; i++) {
+            if (transactions[i].receipt && transactions[i].receipt.contractAddress) {
               await contractsProcessingPool.send({ hash: transactions[i].hash })
+              txCounter++
             }
           }
+          log(`[${blockNumber}] Send ${txCounter} transactions to processing`)
         }
 
         // Replace transaction object on transaction hash in block
