@@ -12,6 +12,9 @@ const repositories = require('../../../db/repositories')
 const contractsProcessingPool = new TasksPool(CONTRACTS_PROCESSING)
 const eventsProcessingPool = new TasksPool(EVENTS_PROCESSING)
 
+// restart every 1 hour
+setTimeout(() => { process.exit() }, 60 * 60 * 1000)
+
 Promise.all([
   repositories.connect(),
   contractsProcessingPool.connectAsWriter(),
