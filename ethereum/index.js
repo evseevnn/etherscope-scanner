@@ -3,6 +3,7 @@ const Web3 = require('web3')
 const EventEmitter = require('events')
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
+const net = require('net')
 
 const REQUEST_INTERVAL = 1000 // every second
 const contractsInterfaces = require('./interfaces')
@@ -24,9 +25,14 @@ Object.keys(contractsInterfaces).forEach(interfaceName => {
 })
 
 class Ethereum extends EventEmitter {
-  constructor({ url = 'ws://localhost:8546', firstBlockNumber = false } = {}) {
+  constructor({ ipc = process.env.PARITY_IPC, url = 'ws://localhost:8546', firstBlockNumber = false } = {}) {
     super()
-    this.web3 = new Web3(url)
+    if (ipc) {
+      const provider = new Web3.providers.IpcProvider(ipc, net)
+      this.web3 = new Web3(provider)
+    } else {
+      this.web3 = new Web3(url)
+    }
     this.tracingNewBlocks = false
     this.firstBlockNumber = firstBlockNumber
   }
