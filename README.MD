@@ -57,5 +57,6 @@ screen -L parity\
   --max-peers 100\
   --snapshot-peers 50\
   --min-peers 50\
-  --cache-size 6144
+  --cache-size 6144\
+  --ipc-path /root/parity.ipc
 ```

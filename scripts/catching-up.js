@@ -24,7 +24,7 @@ repositories
         const blocksAmount = await BlocksReposiroty.count({})
         let lastBlockNumber = 0
         if (blocksAmount > 0) {
-          const cursor = await BlocksReposiroty.find({}, { number: 1 }).sort({ number: 1 })
+          const cursor = await BlocksReposiroty.find({ number: { $gte: process.env.CATCHING_FROM_BLOCK || 0 } }, { number: 1 }).sort({ number: 1 })
           cursor.forEach(async (block) => {
             if (block.number === lastBlockNumber) {
               // Block exists
