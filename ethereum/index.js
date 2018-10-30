@@ -5,7 +5,6 @@ const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 const net = require('net')
 
-const RESUEST_PER_TIME = 100
 const REQUEST_INTERVAL = 1000 // every second
 const contractsInterfaces = require('./interfaces')
 const contractsFuncHashes = {}
