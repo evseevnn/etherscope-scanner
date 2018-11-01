@@ -27,7 +27,7 @@ blocksPool
       .on('blocks', async ({ from, to }) => {
         // reset timer
         if (noBlocksTimer) {
-          clearInterval(noBlocksTimer)
+          clearTimeout(noBlocksTimer)
         }
         for (; from <= to; from++) {
           log(`Send to processing block #${from}`)
