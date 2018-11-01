@@ -46,10 +46,10 @@ screen -L parity\
   --ws-interface all\
   --jsonrpc-interface all\
   --jsonrpc-cors all\
-  --base-path /mnt/volume_ams3_01/ethereum\
+  --base-path /ethereum\
   --no-warp\
   --no-hardware-wallets\
-  --min-gas-price 3000000000\
+  --min-gas-price 20000000000\
   --no-serve-light\
   --fat-db on\
   --tracing on\
@@ -58,5 +58,6 @@ screen -L parity\
   --snapshot-peers 50\
   --min-peers 50\
   --cache-size 6144\
-  --ipc-path /root/parity.ipc
+  --ipc-path /root/parity.ipc\
+  --unsafe-expose
 ```

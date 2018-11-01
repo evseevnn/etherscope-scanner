@@ -7,6 +7,9 @@ const TasksPool = require('./TasksPool')
 
 const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
 
+const NO_BLOCK_RESTART_TIMEOUT = 60000 // 60 seconds to restart if no new blocks
+let noBlocksTimer = null
+
 // Start tracing ethereum network
 const blocksPool = new TasksPool(EthereumListners.NEW_BLOCKS_LISTNER)
 blocksPool
@@ -22,9 +25,17 @@ blocksPool
     ethereum.traceNewBlocks()
     ethereum
       .on('blocks', async ({ from, to }) => {
+        // reset timer
+        if (noBlocksTimer) {
+          clearInterval(noBlocksTimer)
+        }
         for (; from <= to; from++) {
           log(`Send to processing block #${from}`)
           await blocksPool.send({ blockNumber: from })
         }
+        noBlocksTimer = setTimeout(() => {
+          log('No blocks...?! restarting...')
+          process.exit()
+        }, NO_BLOCK_RESTART_TIMEOUT)
       })
   })
