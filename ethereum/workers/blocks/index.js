@@ -56,12 +56,14 @@ Promise.all([
                 isTransferComplete: (
                   transactions[i].method &&
                   ['transferFrom', 'transfer'].includes(transactions[i].method.name) &&
-                  transactions[i].events.findIndex(event => (
-                      event.address.address === transactions[i].to.address &&
-                      event.name === 'Transfer' &&
-                      event.data.value === (transactions[i].method.name === 'transfer' ? transactions[i].method.arguments[1] : transactions[i].method.arguments[2])
-                    )
-                  ) > -1
+                  (
+                    transactions[i].events.findIndex(event => (
+                        event.address.address === transactions[i].to.address &&
+                        event.name === 'Transfer' &&
+                        event.data.value === (transactions[i].method.name === 'transfer' ? transactions[i].method.arguments[1] : transactions[i].method.arguments[2])
+                      )
+                    ) > -1
+                  )
                 ),
                 addedAt: new Date(),
                 createdAt: new Date(block.timestamp * 1000)
