@@ -156,9 +156,12 @@ Promise.all([
           }
         }
 
-        log(`[${blockNumber}] Got balances for addresses ${Object.keys(decoratedAddresses).length}`)
-        if (Object.keys(decoratedAddresses).length) {
+        const allUpdatedAddresses = Object.keys(decoratedAddresses)
+        log(`[${blockNumber}] Got balances for addresses ${allUpdatedAddresses.length}`)
+        if (allUpdatedAddresses.length) {
           await AddressesRepository.update(Object.values(decoratedAddresses), [ 'address' ], true)
+          // Send addresses to cache manager
+          await eventsProcessingPool.send({ addresses: allUpdatedAddresses })
           log(`[${blockNumber}] Balances saved.`)
         }
         // END

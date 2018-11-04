@@ -40,12 +40,14 @@ apps:
     env:
       NSQ_READER_MAX_IN_FLIGHT: 5
 
-  - script: ./ethereum/workers/events/balances.js
-    name: balances-processing
+  - script: ./ethereum/workers/events/cache-management.js
+    name: cache-management
     instances: 1
     exec_mode: fork
     autorestart: true
     args: --expose-gc
+    env:
+      NSQ_READER_MAX_IN_FLIGHT: 1
 
   - script: ./ethereum/workers/events/push-notification.js
     name: push-notification
