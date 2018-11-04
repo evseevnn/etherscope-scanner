@@ -53,21 +53,22 @@ Promise.all([
               decoratedBeforeTransaction,
               decoratedAfterTransaction,
               {
-                isTransferComplete: (
-                  transactions[i].method &&
-                  ['transferFrom', 'transfer'].includes(transactions[i].method.name) &&
-                  (
-                    transactions[i].events.findIndex(event => (
-                        event.address.address === transactions[i].to.address &&
-                        event.name === 'Transfer' &&
-                        event.data.value === (transactions[i].method.name === 'transfer' ? transactions[i].method.arguments[1] : transactions[i].method.arguments[2])
-                      )
-                    ) > -1
-                  )
-                ),
                 addedAt: new Date(),
                 createdAt: new Date(block.timestamp * 1000)
               })
+            // Transaction complete checking
+            transactions[i].isTransferComplete = (
+              transactions[i].method &&
+              ['transferFrom', 'transfer'].includes(transactions[i].method.name) &&
+              (
+                transactions[i].events.findIndex(event => (
+                    event.address.address === transactions[i].to.address &&
+                    event.name === 'Transfer' &&
+                    event.data.value === (transactions[i].method.name === 'transfer' ? transactions[i].method.arguments[1] : transactions[i].method.arguments[2])
+                  )
+                ) > -1
+              )
+            )
             // if no contract no need to do contract processing
             if (transactions[i].receipt && !transactions[i].receipt.contractAddress) {
               transactions[i].isContractProcessed = true
