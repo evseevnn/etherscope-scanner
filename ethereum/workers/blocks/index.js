@@ -89,12 +89,11 @@ Promise.all([
           for (let b = 0; b < ETHBalances.length; b++) {
             if (!decoratedAddresses[ETHBalances[b].address]) {
               decoratedAddresses[ETHBalances[b].address] = await addressDecorator(ETHBalances[b].address, AddressesRepository, false, true)
-            } else {
-              decoratedAddresses[ETHBalances[b].address] = Object.assign(
-                decoratedAddresses[ETHBalances[b].address],
-                { balance: ETHBalances[b].balance, updatedAt: new Date() }
-              )
             }
+            decoratedAddresses[ETHBalances[b].address] = Object.assign(
+              decoratedAddresses[ETHBalances[b].address],
+              { balance: ETHBalances[b].balance, updatedAt: new Date() }
+            )
           }
         }
 
