@@ -155,17 +155,16 @@ Promise.all([
         for (let afe = 0; afe < addressesFromEvents.length; afe++) {
           if (!decoratedAddresses[addressesFromEvents[afe].address]) {
             decoratedAddresses[addressesFromEvents[afe].address] = addressesFromEvents[afe]
-          } else {
-            decoratedAddresses[addressesFromEvents[afe].address] = Object.assign(
-              decoratedAddresses[addressesFromEvents[afe].address],
-              {
-                tokens: Object.assign(
-                  decoratedAddresses[addressesFromEvents[afe].address].tokens,
-                  addressesFromEvents[afe].tokens
-                )
-              }
-            )
           }
+          decoratedAddresses[addressesFromEvents[afe].address] = Object.assign(
+            decoratedAddresses[addressesFromEvents[afe].address],
+            {
+              tokens: Object.assign(
+                decoratedAddresses[addressesFromEvents[afe].address].tokens,
+                addressesFromEvents[afe].tokens
+              )
+            }
+          )
         }
 
         const allUpdatedAddresses = Object.keys(decoratedAddresses)
