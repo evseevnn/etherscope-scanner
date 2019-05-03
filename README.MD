@@ -39,6 +39,8 @@ db.getCollection('transactions').createIndex({isContractProcessed: 1}, {backgrou
 # Parity
 
 ```
+sudo mkdir /ethereum
+
 screen -L parity\
   --mode active\
   --ws-origins all\
@@ -46,18 +48,17 @@ screen -L parity\
   --ws-interface all\
   --jsonrpc-interface all\
   --jsonrpc-cors all\
-  --base-path /ethereum\
+  --base-path /ethereum/data\
   --no-warp\
   --no-hardware-wallets\
   --min-gas-price 20000000000\
   --no-serve-light\
-  --fat-db on\
   --tracing on\
   --db-compaction ssd\
   --max-peers 100\
   --snapshot-peers 50\
   --min-peers 50\
   --cache-size 6144\
-  --ipc-path /root/parity.ipc\
+  --ipc-path /ethereum/parity.ipc\
   --unsafe-expose
 ```
