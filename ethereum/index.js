@@ -1,11 +1,10 @@
 const log = require('debug')('ethereum')
-const Web3 = require('web3')
+const Parity = require('@parity/api')
+const url = require('url')
 const EventEmitter = require('events')
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
-const net = require('net')
 
-const REQUEST_INTERVAL = 1000 // every second
 const contractsInterfaces = require('./interfaces')
 const contractsFuncHashes = {}
 Object.keys(contractsInterfaces).forEach(interfaceName => {
@@ -25,33 +24,58 @@ Object.keys(contractsInterfaces).forEach(interfaceName => {
 })
 
 class Ethereum extends EventEmitter {
-  constructor({ ipc = process.env.PARITY_IPC, url = 'ws://localhost:8546', firstBlockNumber = false } = {}) {
+  /**
+   * Conctructor of Ethereum
+   * @param {String} path Path to ethereum node instance, can be http(s), ws, ipc interface
+   */
+  constructor(path) {
     super()
-    if (ipc) {
-      const provider = new Web3.providers.IpcProvider(ipc, net)
-      this.web3 = new Web3(provider)
-    } else {
-      this.web3 = new Web3(url)
+    const URL = url.parse(path)
+    let provider
+    switch (URL.protocol) {
+      case 'http:':
+      case 'https:':
+        provider = new Parity.Provider.Http(URL.href)
+        break
+
+      case 'ws:':
+        provider = new Parity.Provider.Ws(URL.href)
+        break
+
+      case 'ips:':
+        provider = new Parity.Provider.Ipc(URL.path)
+        break
+
+      default:
+        throw new Error('Unknown protocol')
     }
-    this.tracingNewBlocks = false
-    this.firstBlockNumber = firstBlockNumber
+
+    this.patiry = new Parity(provider)
   }
 
-  async traceNewBlocks() {
-    // Start tracing
-    this.web3.eth.getBlockNumber()
-        .then(blockNumber => {
-          if (this.firstBlockNumber < blockNumber) {
-            const firstBlockNumber = this.firstBlockNumber && this.firstBlockNumber + 1
-            this.firstBlockNumber = blockNumber
-            setImmediate(() => this.emit('blocks', {
-              from: (firstBlockNumber === false ? blockNumber : firstBlockNumber),
-              to: blockNumber
-            }))
-          }
-          setTimeout(() => this.traceNewBlocks(), REQUEST_INTERVAL)
-        })
-        .catch(log)
+  async subscribeOnNewBlocks(lastBlock = false) {
+    if (!this.patiry) {
+      throw new Error('Connection not ready')
+    }
+
+    // Need subscribe on new headers and headers and check block every new header
+    if (!this.patiry.isPubSub) {
+      log('Warning! This connection to ethererum node cannot use subscriptions. Emulation will used.')
+    }
+    // get subscription
+    const subscription = await this.patiry.pubsub.eth.blockNumber((error, blockNumber) => {
+      if (error) {
+        throw new Error(error)
+      }
+
+      this.emit('blocks', {
+        from: lastBlock !== false ? lastBlock : blockNumber,
+        to: blockNumber
+      })
+      lastBlock = blockNumber
+    })
+
+    return subscription
   }
 
   /**
@@ -62,7 +86,7 @@ class Ethereum extends EventEmitter {
   async getBlockData(blockNumber) {
     return new Promise(async (resolve) => {
       // Getting block and transactions data
-      const block = await this.web3.eth.getBlock(blockNumber, true)
+      const block = await this.parity.eth.getBlock(blockNumber, true)
       if (block.extraData.length && block.extraData.startsWith('0x')) {
         block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
       }
@@ -71,9 +95,9 @@ class Ethereum extends EventEmitter {
       try {
         if (transactions.length) {
           // Getting operations data
-          const batch = new this.web3.BatchRequest()
+          const batch = new this.parity.BatchRequest()
           transactions.forEach((transaction, index) => {
-            batch.add(this.web3.eth.getTransactionReceipt.request(transaction.hash, (error, data) => {
+            batch.add(this.parity.eth.getTransactionReceipt.request(transaction.hash, (error, data) => {
               if (error) {
                 throw new Error(error)
               }
@@ -106,14 +130,14 @@ class Ethereum extends EventEmitter {
     return new Promise((resolve) => {
       const addressesBalances = []
       // Getting operations data
-      const batch = new this.web3.BatchRequest()
+      const batch = new this.parity.BatchRequest()
       addresses = Array.from(new Set(addresses))
       addresses.forEach(address => {
-        batch.add(this.web3.eth.getBalance.request(address, (error, data) => {
+        batch.add(this.parity.eth.getBalance.request(address, (error, data) => {
           if (error) {
             throw new Error(error)
           }
-          addressesBalances.push({ address, balance: this.web3.utils.fromWei(data.toString(10), 'ether') })
+          addressesBalances.push({ address, balance: this.parity.utils.fromWei(data.toString(10), 'ether') })
           if (addressesBalances.length === addresses.length) {
             resolve(addressesBalances)
           }
@@ -175,7 +199,7 @@ class Ethereum extends EventEmitter {
         abi = abi.concat(contractsInterfaces[interfaceName].abi)
       }
     })
-    return new this.web3.eth.Contract(abi, contractAddress)
+    return new this.parity.eth.Contract(abi, contractAddress)
   }
 
   /**
@@ -191,7 +215,7 @@ class Ethereum extends EventEmitter {
         log(`Interface with name ${interfaceName} is not found`)
       } else {
         const interfaceData = contractsInterfaces[interfaceName]
-        const contract = new this.web3.eth.Contract(interfaceData.abi, address)
+        const contract = new this.parity.eth.Contract(interfaceData.abi, address)
         interfaceData.abi.forEach(abiEntity => {
           if (
             abiEntity.name &&
