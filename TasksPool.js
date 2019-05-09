@@ -73,7 +73,6 @@ class TasksPool {
   connectAsReader(channel, callback) {
     nsqReader = new Reader(this.topic, channel, readerOptions)
     nsqReader.connect()
-    let touchTimeout
     nsqReader
           .on('discard', (error) => log(error))
           .on('error', (error) => {
@@ -81,25 +80,26 @@ class TasksPool {
             process.exit()
           })
           .on('nsqd_connected', () => log('Task pool reader is ready'))
-          .on('message', (msg) => {
-            const touch = () => {
-              if (!msg.hasResponded) {
-                msg.touch()
+      .on('message', (msg) => {
+        let touchTimeout
+        const touch = () => {
+          if (!msg.hasResponded) {
+            msg.touch()
 
-                // Touch the message again a second before the next timeout.
-                touchTimeout = setTimeout(touch, msg.timeUntilTimeout() - 1000)
-              }
-            }
-
+            // Touch the message again a second before the next timeout.
             touchTimeout = setTimeout(touch, msg.timeUntilTimeout() - 1000)
+          }
+        }
 
-            callback(JSON.parse(msg.body.toString()), (isFinish = true) => {
-              clearTimeout(touchTimeout)
+        touchTimeout = setTimeout(touch, msg.timeUntilTimeout() - 1000)
+
+        callback(JSON.parse(msg.body.toString()), (isFinish = true) => {
+          clearTimeout(touchTimeout)
               // Collect garbage
-              global.gc && global.gc()
-              isFinish && msg.finish()
-            })
-          })
+          global.gc && global.gc()
+          isFinish && msg.finish()
+        })
+      })
   }
 }
 

@@ -2,8 +2,6 @@ const log = require('debug')('ethereum')
 const Parity = require('@parity/api')
 const url = require('url')
 const EventEmitter = require('events')
-const util = require('util')
-const exec = util.promisify(require('child_process').exec)
 
 const contractsInterfaces = require('./interfaces')
 const contractsFuncHashes = {}
@@ -15,7 +13,7 @@ Object.keys(contractsInterfaces).forEach(interfaceName => {
       abiEntity.name &&
       abiEntity.type === 'function'
     ) {
-      hashes.push(abiEntity._hash)
+      hashes.push(abiEntity._hash.substring(2))
     }
   })
   if (hashes.length) {
@@ -50,29 +48,30 @@ class Ethereum extends EventEmitter {
         throw new Error('Unknown protocol')
     }
 
-    this.patiry = new Parity(provider)
+    this.parity = new Parity(provider)
   }
 
-  async subscribeOnNewBlocks(lastBlock = false) {
-    if (!this.patiry) {
+  async subscribeOnNewBlocks(lastBlock = null) {
+    if (!this.parity) {
       throw new Error('Connection not ready')
     }
 
     // Need subscribe on new headers and headers and check block every new header
-    if (!this.patiry.isPubSub) {
+    if (!this.parity.isPubSub) {
       log('Warning! This connection to ethererum node cannot use subscriptions. Emulation will used.')
     }
+
     // get subscription
-    const subscription = await this.patiry.pubsub.eth.blockNumber((error, blockNumber) => {
+    const subscription = await this.parity.pubsub.eth.blockNumber((error, blockNumber) => {
       if (error) {
         throw new Error(error)
       }
 
       this.emit('blocks', {
-        from: lastBlock !== false ? lastBlock : blockNumber,
-        to: blockNumber
+        from: lastBlock !== null ? lastBlock + 1 : blockNumber.toNumber(),
+        to: blockNumber.toNumber()
       })
-      lastBlock = blockNumber
+      lastBlock = blockNumber.toNumber()
     })
 
     return subscription
@@ -83,42 +82,27 @@ class Ethereum extends EventEmitter {
    * @param {Number} blockNumber
    * @return {Promise<Object>}
    */
-  async getBlockData(blockNumber) {
-    return new Promise(async (resolve) => {
-      // Getting block and transactions data
-      const block = await this.parity.eth.getBlock(blockNumber, true)
-      if (block.extraData.length && block.extraData.startsWith('0x')) {
+  getBlockData(blockNumber) {
+    if (!this.parity) {
+      throw new Error('Connection not ready')
+    }
+
+    return Promise.all([
+      this.parity.eth.getBlockByNumber(blockNumber, true),
+      this.parity.parity.getBlockReceipts(blockNumber)
+    ])
+    .then(([ block, receipts ]) => {
+      if (block.extraData && block.extraData.length && block.extraData.startsWith('0x')) {
         block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
       }
-      const transactions = Array.from(block.transactions)
-      let gottedReceipts = 0
-      try {
-        if (transactions.length) {
-          // Getting operations data
-          const batch = new this.parity.BatchRequest()
-          transactions.forEach((transaction, index) => {
-            batch.add(this.parity.eth.getTransactionReceipt.request(transaction.hash, (error, data) => {
-              if (error) {
-                throw new Error(error)
-              }
-              transactions[index].receipt = data
-              gottedReceipts++
-              if (gottedReceipts === transactions.length) {
-                resolve({ block, transactions })
-              }
-            }))
-          })
-          batch.execute()
-        } else {
-          resolve({ block, transactions })
-        }
-      } catch (error) {
-        log(error.toString())
-        return new Promise((resolve, reject) => {
-          setTimeout(() => resolve(this.getBlockData(blockNumber)), 1000)
-        })
-      }
+      const transactions = Array.from(block.transactions).map((transaction, index) => {
+        transaction.receipt = receipts[index]
+        return transaction
+      })
+
+      return { block, transactions }
     })
+    .catch(err => log(err))
   }
 
   /**
@@ -148,39 +132,27 @@ class Ethereum extends EventEmitter {
   }
 
   /**
-   * Load contract and return opcode
+   * Load contract and return code
    * @param {String} address
    */
-  async getContractOpcode(address) {
-    try {
-      const { stdout: opcode, stderr } = await exec(`myth -d -a "${address}" --rpc=${process.env.ETHEREUM_NODE_RPC}`)
-      if (stderr) {
-        throw Error(`Error getting opcode for address ${address}`)
-      }
-      if (opcode.startsWith('Received an empty response')) {
-        log(`Address ${address} is not a contract`)
-        return null
-      }
-      return opcode
-    } catch (error) {
-      log(error.toString())
-      return null
-    }
+  async getContractCode(address) {
+    const code = await this.parity.eth.getCode(address)
+    return code
   }
 
   /**
    * Return contract interfaces
    * @param {String} address
    */
-  async getContractInterfaces(address, opcode) {
-    if (!opcode) {
-      opcode = await this.getContractOpcode(address)
+  async getContractInterfaces(address, code) {
+    if (!code) {
+      code = await this.getContractCode(address)
     }
 
     // Check types
     return Object.keys(contractsFuncHashes).filter(interfaceName => {
       return contractsFuncHashes[interfaceName].every(hash => {
-        return new RegExp(hash).test(opcode)
+        return new RegExp(hash).test(code)
       })
     })
   }
@@ -199,7 +171,7 @@ class Ethereum extends EventEmitter {
         abi = abi.concat(contractsInterfaces[interfaceName].abi)
       }
     })
-    return new this.parity.eth.Contract(abi, contractAddress)
+    return this.parity.newContract(abi, contractAddress)
   }
 
   /**
@@ -215,7 +187,7 @@ class Ethereum extends EventEmitter {
         log(`Interface with name ${interfaceName} is not found`)
       } else {
         const interfaceData = contractsInterfaces[interfaceName]
-        const contract = new this.parity.eth.Contract(interfaceData.abi, address)
+        const contract = this.parity.newContract(interfaceData.abi, address)
         interfaceData.abi.forEach(abiEntity => {
           if (
             abiEntity.name &&
@@ -223,13 +195,23 @@ class Ethereum extends EventEmitter {
             abiEntity.type === 'function' &&
             (abiEntity.constant || abiEntity.stateMutability === 'view')
           ) {
-            promises.push(contract.methods[abiEntity.name]().call().then(value => (contractData[abiEntity.name] = value)).catch(() => log(`[${address}][${abiEntity.name}] Cannot get contract data from method`)))
+            promises
+              .push(
+                contract.instance[abiEntity.name]
+                  .call()
+                  .then(value => {
+                    contractData[abiEntity.name] = value.toString()
+                  })
+                  .catch(() => log(`[${address}][${abiEntity.name}] Cannot get contract data from method`))
+              )
           }
         })
       }
     })
     return Promise.all(promises)
-      .then(() => contractData)
+      .then(() => {
+        return JSON.parse(JSON.stringify(contractData))
+      })
       .catch(error => {
         log(`[${address}] Cannot get contract data`, error.toString())
       })

@@ -1,5 +1,5 @@
 const addressDecorator = require('./addressDecorator')
-const web3 = require('web3')
+const utils = require('web3-utils')
 
 module.exports = async (transaction, AddressesRepository) => {
   let decoratedTransaction = {}
@@ -12,12 +12,12 @@ module.exports = async (transaction, AddressesRepository) => {
       from: await addressDecorator(transaction.from, AddressesRepository),
       to: transaction.to || (transaction.receipt && transaction.receipt.contractAddress),
       gas: transaction.gas,
-      value: web3.utils.fromWei(transaction.value, 'ether'),
+      value: utils.fromWei(transaction.value, 'ether'),
       method: null,
       events: []
     }
     decoratedTransaction.to = await addressDecorator(decoratedTransaction.to, AddressesRepository)
-    decoratedTransaction.gasPrice = web3.utils.fromWei(transaction.gasPrice, 'ether')
+    decoratedTransaction.gasPrice = utils.fromWei(transaction.gasPrice, 'ether')
 
     if (transaction.receipt) {
       // Status before Byzantium parity return always false, so need use rules for solve trouble
@@ -27,11 +27,11 @@ module.exports = async (transaction, AddressesRepository) => {
 
       if (transaction.receipt.gasUsed) {
         decoratedTransaction.gasUsed = transaction.receipt.gasUsed
-        decoratedTransaction.fee = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.gasPrice)), 'ether')
+        decoratedTransaction.fee = utils.fromWei(utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(transaction.gasPrice)), 'ether')
       }
 
       if (transaction.receipt.cumulativeGasUsed) {
-        decoratedTransaction.cumulativeGasUsed = web3.utils.fromWei(web3.utils.toBN(transaction.receipt.gasUsed).mul(web3.utils.toBN(transaction.receipt.cumulativeGasUsed)), 'ether')
+        decoratedTransaction.cumulativeGasUsed = utils.fromWei(utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(transaction.receipt.cumulativeGasUsed)), 'ether')
       }
 
       // If transaction has logs that mean what reciver is unknown contract

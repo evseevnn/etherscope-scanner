@@ -1,6 +1,6 @@
 const log = require('debug')('ethereum:listners:contracts-processing')
 const Ethereum = require('../../..')
-const ethereum = new Ethereum({ url: process.env.ETHEREUM_NODE_WS })
+const ethereum = new Ethereum(process.env.ETHEREUM_NODE)
 
 /**
  * ONLY FOR CONTRACTS ADDRESSES
@@ -17,9 +17,9 @@ module.exports = async ({ addresses, AddressesRepository }) => {
       for (let i = 0; i < addresses.length; i++) {
         const address = addresses[i]
         log(`Checing ${address}`)
-        const opcode = await ethereum.getContractOpcode(address)
-        if (opcode) {
-          const interfaces = await ethereum.getContractInterfaces(address, opcode)
+        const code = await ethereum.getContractCode(address)
+        if (code) {
+          const interfaces = await ethereum.getContractInterfaces(address, code)
           const data = await ethereum.getContractDataByInterfaces(address, interfaces)
           if (data && data.totalSupply && data.decimals) {
             data.totalSupply = (data.totalSupply / (Math.pow(10, data.decimals) || 1).toFixed(8).replace(/\.?0+$/, ''))
@@ -28,16 +28,9 @@ module.exports = async ({ addresses, AddressesRepository }) => {
           addressesForSave.push({
             instanceOf: interfaces,
             data,
-            opcode,
+            code,
             address,
             type: 'contract'
-          })
-        } else {
-          addressesForSave.push({
-            address,
-            type: 'address',
-            balance: 0,
-            tokens: {}
           })
         }
       }
