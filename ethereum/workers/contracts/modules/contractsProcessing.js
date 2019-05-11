@@ -1,11 +1,11 @@
 const log = require('debug')('ethereum:listners:contracts-processing')
 const Ethereum = require('../../..')
-const ethereum = new Ethereum(process.env.ETHEREUM_NODE)
+const ethereum = new Ethereum(process.env.ETHEREUM_NODE_HTTP)
 
 /**
  * ONLY FOR CONTRACTS ADDRESSES
  */
-module.exports = async ({ addresses, AddressesRepository }) => {
+module.exports = async ({ addresses, blockNumber, createdAt, AddressesRepository }) => {
   const addressesForSave = []
   if (addresses.length) {
     // Get get exists contracts
@@ -30,7 +30,9 @@ module.exports = async ({ addresses, AddressesRepository }) => {
             data,
             code,
             address,
-            type: 'contract'
+            type: 'contract',
+            blockNumber,
+            createdAt
           })
         }
       }

@@ -58,7 +58,7 @@ class Ethereum extends EventEmitter {
 
     // Need subscribe on new headers and headers and check block every new header
     if (!this.parity.isPubSub) {
-      log('Warning! This connection to ethererum node cannot use subscriptions. Emulation will used.')
+      throw new Error('Warning! This connection to ethererum node cannot use subscriptions.')
     }
 
     // get subscription
@@ -82,27 +82,31 @@ class Ethereum extends EventEmitter {
    * @param {Number} blockNumber
    * @return {Promise<Object>}
    */
-  getBlockData(blockNumber) {
+  async getBlockData(blockNumber) {
     if (!this.parity) {
       throw new Error('Connection not ready')
     }
 
-    return Promise.all([
-      this.parity.eth.getBlockByNumber(blockNumber, true),
-      this.parity.parity.getBlockReceipts(blockNumber)
-    ])
-    .then(([ block, receipts ]) => {
-      if (block.extraData && block.extraData.length && block.extraData.startsWith('0x')) {
-        block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
-      }
-      const transactions = Array.from(block.transactions).map((transaction, index) => {
-        transaction.receipt = receipts[index]
-        return transaction
-      })
+    let parity = this.parity
 
-      return { block, transactions }
+    let [ block, receipts ] = await Promise.all([
+      parity.eth.getBlockByNumber(blockNumber, true),
+      parity.parity.getBlockReceipts(blockNumber)
+    ])
+
+    if (block.extraData && block.extraData.length && block.extraData.startsWith('0x')) {
+      block.extraData = Buffer.from(block.extraData.substring(block.extraData.indexOf('x') + 1), 'hex').toString()
+    }
+
+    const transactions = Array.from(block.transactions).map((transaction, index) => {
+      transaction.receipt = receipts[index]
+      return transaction
     })
-    .catch(err => log(err))
+
+    return {
+      block: JSON.parse(JSON.stringify(block)),
+      transactions: JSON.parse(JSON.stringify(transactions))
+    }
   }
 
   /**

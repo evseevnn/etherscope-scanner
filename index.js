@@ -5,12 +5,18 @@ const Ethereum = require('./ethereum')
 const EthereumListners = require('./ethereum/workers')
 const TasksPool = require('./TasksPool')
 
-const ethereum = new Ethereum(process.env.ETHEREUM_NODE)
+const ethereum = new Ethereum(process.env.ETHEREUM_NODE_WS)
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
 
 // Start tracing ethereum network
 const blocksPool = new TasksPool(EthereumListners.NEW_BLOCKS_LISTNER)
 blocksPool
-  .connectAsWriter()
+  .connect()
   .then(() => {
     log('Ethereum blocks listner started')
 
@@ -19,12 +25,13 @@ blocksPool
     }
 
     // Start tracing new blocks
-    ethereum.subscribeOnNewBlocks()
+    ethereum.subscribeOnNewBlocks(4500000)
     ethereum
       .on('blocks', async ({ from, to }) => {
         for (; from <= to; from++) {
           log(`Send to processing block #${from}`)
-          await blocksPool.send({ blockNumber: from })
+          await sleep(1)
+          blocksPool.send({ blockNumber: from })
         }
       })
   })
