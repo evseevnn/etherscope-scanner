@@ -2,6 +2,14 @@ module.exports = {
   apps: [
     {
       name: 'blocks-listner',
+      script: './index.js',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: true,
+      args: '--expose-gc'
+    },
+    {
+      name: 'blocks-processing',
       script: './ethereum/workers/blocks/index.js',
       instances: 2,
       exec_mode: 'fork',
