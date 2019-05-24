@@ -5,15 +5,18 @@ const EventEmitter = require('events')
 
 const contractsInterfaces = require('./interfaces')
 const contractsFuncHashes = {}
+const contractsHashAbi = {}
 Object.keys(contractsInterfaces).forEach(interfaceName => {
   const abiEntities = contractsInterfaces[interfaceName].abi
   const hashes = []
   abiEntities.forEach(abiEntity => {
+    const hash = abiEntity._hash.substring(2)
+    contractsHashAbi[hash] = abiEntity
     if (
       abiEntity.name &&
       abiEntity.type === 'function'
     ) {
-      hashes.push(abiEntity._hash.substring(2))
+      hashes.push(hash)
     }
   })
   if (hashes.length) {
@@ -110,29 +113,14 @@ class Ethereum extends EventEmitter {
   }
 
   /**
-   * Return all balances of addresses
-   * @param {Array} addresses
+   * Return balance of address
+   * @param {String} address
+   * @param {Any} blockNumber
    * @return {Promise<Object>}
    */
-  async getBalances(addresses) {
-    return new Promise((resolve) => {
-      const addressesBalances = []
-      // Getting operations data
-      const batch = new this.parity.BatchRequest()
-      addresses = Array.from(new Set(addresses))
-      addresses.forEach(address => {
-        batch.add(this.parity.eth.getBalance.request(address, (error, data) => {
-          if (error) {
-            throw new Error(error)
-          }
-          addressesBalances.push({ address, balance: this.parity.utils.fromWei(data.toString(10), 'ether') })
-          if (addressesBalances.length === addresses.length) {
-            resolve(addressesBalances)
-          }
-        }))
-      })
-      batch.execute()
-    })
+  async getBalance(address, blockNumber = 'latest') {
+    const balance = await this.parity.eth.getBalance(address, blockNumber)
+    return balance
   }
 
   /**
@@ -153,12 +141,19 @@ class Ethereum extends EventEmitter {
       code = await this.getContractCode(address)
     }
 
+    // Getting abi
+    const abi = Object.keys(contractsHashAbi)
+      .filter(hash => code.includes(hash))
+      .map(hash => contractsHashAbi[hash])
+
     // Check types
-    return Object.keys(contractsFuncHashes).filter(interfaceName => {
+    const instanceOf = Object.keys(contractsFuncHashes).filter(interfaceName => {
       return contractsFuncHashes[interfaceName].every(hash => {
         return new RegExp(hash).test(code)
       })
     })
+
+    return { abi, instanceOf }
   }
 
   /**
@@ -166,50 +161,35 @@ class Ethereum extends EventEmitter {
    * @param {String} contractAddress
    * @param {Array} interfaces
    */
-  getContract(contractAddress, interfaces) {
-    let abi = []
-    interfaces.forEach(interfaceName => {
-      if (!contractsInterfaces[interfaceName]) {
-        log(`Interface with name ${interfaceName} is not found`)
-      } else {
-        abi = abi.concat(contractsInterfaces[interfaceName].abi)
-      }
-    })
+  getContract(contractAddress, abi) {
     return this.parity.newContract(abi, contractAddress)
   }
 
   /**
    * Return data from contract using interfaces
    * @param {String} address
-   * @param {Array<String>} interfaces
+   * @param {Array<String>} abi
    */
-  async getContractDataByInterfaces(address, interfaces) {
+  async getContractDataByInterfaces(address, abi) {
     const contractData = {}
     const promises = []
-    interfaces.forEach(interfaceName => {
-      if (!contractsInterfaces[interfaceName]) {
-        log(`Interface with name ${interfaceName} is not found`)
-      } else {
-        const interfaceData = contractsInterfaces[interfaceName]
-        const contract = this.parity.newContract(interfaceData.abi, address)
-        interfaceData.abi.forEach(abiEntity => {
-          if (
-            abiEntity.name &&
-            !abiEntity.inputs.length &&
-            abiEntity.type === 'function' &&
-            (abiEntity.constant || abiEntity.stateMutability === 'view')
-          ) {
-            promises
-              .push(
-                contract.instance[abiEntity.name]
-                  .call()
-                  .then(value => {
-                    contractData[abiEntity.name] = value.toString()
-                  })
-                  .catch(() => log(`[${address}][${abiEntity.name}] Cannot get contract data from method`))
-              )
-          }
-        })
+    const contract = this.parity.newContract(abi, address)
+    abi.forEach(abiEntity => {
+      if (
+        abiEntity.name &&
+        !abiEntity.inputs.length &&
+        abiEntity.type === 'function' &&
+        (abiEntity.constant || abiEntity.stateMutability === 'view')
+      ) {
+        promises
+          .push(
+            contract.instance[abiEntity.name]
+              .call()
+              .then(value => {
+                contractData[abiEntity.name] = value.toString()
+              })
+              .catch(() => log(`[${address}][${abiEntity.name}] Cannot get contract data from method`))
+          )
       }
     })
     return Promise.all(promises)

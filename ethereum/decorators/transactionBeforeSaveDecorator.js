@@ -6,32 +6,31 @@ module.exports = async (transaction, AddressesRepository) => {
   if (transaction) {
     decoratedTransaction = {
       hash: transaction.hash,
-      blockNumber: transaction.blockNumber,
-      transactionIndex: transaction.transactionIndex,
-      status: transaction.receipt && transaction.receipt.status,
+      blockNumber: utils.toBN(transaction.blockNumber).toString(10),
+      transactionIndex: utils.toBN(transaction.transactionIndex).toString(10),
+      status: transaction.receipt && transaction.receipt.status && utils.toBN(transaction.receipt.status).toString(10),
       from: await addressDecorator(transaction.from, AddressesRepository),
       to: transaction.to || (transaction.receipt && transaction.receipt.contractAddress),
-      gas: transaction.gas,
-      value: utils.fromWei(transaction.value, 'ether'),
+      gas: utils.toBN(transaction.gas).toString(10),
+      gasPrice: utils.toBN(transaction.gasPrice).toString(10),
+      value: utils.toBN(transaction.value).toString(10),
       method: null,
       events: []
     }
     decoratedTransaction.to = await addressDecorator(decoratedTransaction.to, AddressesRepository)
-    decoratedTransaction.gasPrice = utils.fromWei(transaction.gasPrice, 'ether')
 
     if (transaction.receipt) {
       // Status before Byzantium parity return always false, so need use rules for solve trouble
-      if (transaction.blockNumber < 4370000 && !decoratedTransaction.status) {
+      if (+decoratedTransaction.blockNumber < 4370000 && !decoratedTransaction.status) {
         decoratedTransaction.status = ((transaction.receipt.gasUsed === 21000) || (transaction.receipt.gasUsed < transaction.gas) || (transaction.receipt.logs && transaction.receipt.logs.length))
       }
 
       if (transaction.receipt.gasUsed) {
-        decoratedTransaction.gasUsed = transaction.receipt.gasUsed
-        decoratedTransaction.fee = utils.fromWei(utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(transaction.gasPrice)), 'ether')
+        decoratedTransaction.fee = utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(transaction.gasPrice)).toString(10)
       }
 
       if (transaction.receipt.cumulativeGasUsed) {
-        decoratedTransaction.cumulativeGasUsed = utils.fromWei(utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(transaction.receipt.cumulativeGasUsed)), 'ether')
+        decoratedTransaction.cumulativeGasUsed = utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(transaction.receipt.cumulativeGasUsed)).toString(10)
       }
 
       // If transaction has logs that mean what reciver is unknown contract

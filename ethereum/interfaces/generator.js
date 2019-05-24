@@ -4,7 +4,7 @@ const glob = require('glob')
 const fs = require('fs')
 const path = require('path')
 const log = require('debug')('interfaces-generator')
-const web3 = require('web3')
+const web3Utils = require('web3-utils')
 const repositories = require('../../db/repositories')
 const ARTIFACTS_DIR = path.join(__dirname, '/artifacts')
 const CONTRACTS_DIR = path.join(__dirname, '/contracts')
@@ -48,7 +48,7 @@ repositories.connect()
         newArtifactData.abi = artifactData.abi.map(method => {
           log(`[${contractName}][${method.name}] Generate method hash`)
           method._signature = `${method.name}(${method.inputs && method.inputs.map(input => input.type).join(',')})`
-          method._hash = web3.utils.sha3(method._signature)
+          method._hash = web3Utils.sha3(method._signature)
           if (method.type === 'function') {
             method._hash = method._hash.substring(0, 10)
           }

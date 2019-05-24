@@ -25,7 +25,7 @@ blocksPool
     }
 
     // Start tracing new blocks
-    ethereum.subscribeOnNewBlocks(4500000)
+    ethereum.subscribeOnNewBlocks(-1)
     ethereum
       .on('blocks', async ({ from, to }) => {
         for (; from <= to; from++) {

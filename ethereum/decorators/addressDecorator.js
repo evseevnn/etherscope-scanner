@@ -1,25 +1,22 @@
-module.exports = async (address, AddressesRepository, lightMode = false, includeBalances = false) => {
+module.exports = async (address, AddressesRepository) => {
   // if decorated need do it again
   if (typeof address === 'object' && address.address) {
-    address = address.address
+    return address
   }
 
+  // By default all accounts has type 'address'
   let returnData = { address, type: 'address', balance: 0, tokens: {} }
 
-  if (!lightMode) {
-    const [ addressData ] = await AddressesRepository.find({ address }, { opcode: false }).limit(1).toArray()
-    if (addressData) {
-      returnData = addressData
-    }
+  // trying find address in DB
+  const [ addressData ] = await AddressesRepository.find({ address }, { code: false }).limit(1).toArray()
+  if (addressData) {
+    // Fill returnData
+    returnData = (({ address, abi, type, data, instanceOf, balance = 0, tokens = {} }) => ({ address, abi, type, data, instanceOf, balance, tokens }))(addressData)
   }
 
-  if (includeBalances) {
-    returnData = (({ address, type, data, instanceOf, balance = 0, tokens = {} }) => ({ address, type, data, instanceOf, balance, tokens }))(returnData)
-  } else {
-    returnData = (({ address, type, data, instanceOf }) => ({ address, type, data, instanceOf }))(returnData)
-  }
-
+  // If account it's not contract, no need save data and instanceOf info
   if (returnData.type !== 'contract') {
+    delete returnData.abi
     delete returnData.data
     delete returnData.instanceOf
   }

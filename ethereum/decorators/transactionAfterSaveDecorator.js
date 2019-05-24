@@ -3,11 +3,12 @@ const transactionInputDecorator = require('./transactionInputDecorator')
 const transactionEventsDecorator = require('./transactionEventsDecorator')
 const log = require('debug')('decorators:transaction-input-decorator')
 
-module.exports = async (transaction, InterfacesRepository, AddressesRepository) => {
+module.exports = async (transaction, AddressesRepository, onTransferCallback) => {
   let decoratedTransaction = {}
   if (transaction) {
+    const from = await addressDecorator(transaction.from, AddressesRepository)
     decoratedTransaction = {
-      from: await addressDecorator(transaction.from, AddressesRepository),
+      from,
       to: transaction.to || (transaction.receipt && transaction.receipt.contractAddress),
       method: null,
       events: []
@@ -38,19 +39,30 @@ module.exports = async (transaction, InterfacesRepository, AddressesRepository) 
     }
 
     // Decorate events
-    decoratedTransaction.events = await transactionEventsDecorator(logs, InterfacesRepository.interfaces, AddressesRepository)
+    decoratedTransaction.events = await transactionEventsDecorator(logs, AddressesRepository)
 
     // Decode method
-    if (decoratedTransaction.to && decoratedTransaction.to.type === 'contract' && decoratedTransaction.to.instanceOf && decoratedTransaction.to.instanceOf.length) {
+    if (decoratedTransaction.to && decoratedTransaction.to.type === 'contract') {
       // Decorate Transfer operations
       try {
-        if (decoratedTransaction.to.instanceOf.includes('DetailedERC20') && !isNaN(decoratedTransaction.to.data.decimals)) {
-          decoratedTransaction.method = transactionInputDecorator(transaction, InterfacesRepository.interfaces, decoratedTransaction.to.instanceOf)
+        // need more checking
+        if (decoratedTransaction.to.data) {
+          const decimals = !isNaN(decoratedTransaction.to.data.decimals) ? decoratedTransaction.to.data.decimals : 1
+          decoratedTransaction.method = transactionInputDecorator(transaction, decoratedTransaction.to.abi)
 
           // transfer
           if (decoratedTransaction.method && decoratedTransaction.method.name === 'transfer' && decoratedTransaction.method.arguments[1]) {
             decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
-            decoratedTransaction.method.arguments[1] = (decoratedTransaction.method.arguments[1] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+            decoratedTransaction.method.arguments[1] = (decoratedTransaction.method.arguments[1] / (Math.pow(10, decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+            // if transaction is success
+            if (+transaction.status) {
+              onTransferCallback && await onTransferCallback({
+                from: from.address,
+                to: decoratedTransaction.method.arguments[0],
+                amount: decoratedTransaction.method.arguments[1],
+                tokenAddress: decoratedTransaction.to
+              })
+            }
           }
 
           // approve
@@ -64,6 +76,15 @@ module.exports = async (transaction, InterfacesRepository, AddressesRepository) 
             decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
             decoratedTransaction.method.arguments[1] = await addressDecorator(decoratedTransaction.method.arguments[1], AddressesRepository)
             decoratedTransaction.method.arguments[2] = (decoratedTransaction.method.arguments[2] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+            // if transaction is success
+            if (+transaction.status) {
+              onTransferCallback && await onTransferCallback({
+                from: decoratedTransaction.method.arguments[0],
+                to: decoratedTransaction.method.arguments[1],
+                amount: decoratedTransaction.method.arguments[2],
+                tokenAddress: decoratedTransaction.to
+              })
+            }
           }
         }
       } catch (error) {

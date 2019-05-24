@@ -19,14 +19,15 @@ module.exports = async ({ addresses, blockNumber, createdAt, AddressesRepository
         log(`Checing ${address}`)
         const code = await ethereum.getContractCode(address)
         if (code) {
-          const interfaces = await ethereum.getContractInterfaces(address, code)
-          const data = await ethereum.getContractDataByInterfaces(address, interfaces)
+          const { abi, instanceOf } = await ethereum.getContractInterfaces(address, code)
+          const data = await ethereum.getContractDataByInterfaces(address, abi)
           if (data && data.totalSupply && data.decimals) {
             data.totalSupply = (data.totalSupply / (Math.pow(10, data.decimals) || 1).toFixed(8).replace(/\.?0+$/, ''))
           }
-          log(`[${address}]${interfaces.length ? ` interfaces: ${interfaces.join(', ')}` : ' Unknown contract type'}`)
+          log(`[${address}]${instanceOf.length ? ` interfaces: ${instanceOf.join(', ')}` : ' Unknown contract type'}`)
           addressesForSave.push({
-            instanceOf: interfaces,
+            instanceOf,
+            abi,
             data,
             code,
             address,

@@ -1,13 +1,21 @@
 require('dotenv').load()
 const log = require('debug')('ethereum:listners:blocks')
 const TasksPool = require('../../../TasksPool')
-const { NEW_BLOCKS_LISTNER, CATCHING_UP_BLOCKS_LISTNER, CONTRACTS_PROCESSING, EVENTS_PROCESSING } = require('..')
+const {
+  NEW_BLOCKS_LISTNER,
+  CATCHING_UP_BLOCKS_LISTNER,
+  CONTRACTS_PROCESSING,
+  EVENTS_PROCESSING,
+  BALANCES_PROCESSING
+} = require('..')
 const Ethereum = require('../..')
 const ethereum = new Ethereum(process.env.ETHEREUM_NODE_HTTP)
 const transactionBeforeSaveDecorator = require('../../decorators/transactionBeforeSaveDecorator')
 const transactionAfterSaveDecorator = require('../../decorators/transactionAfterSaveDecorator')
 const repositories = require('../../../db/repositories')
+const balanceProcessing = require('./modules/balances')
 
+const balancesProcessingPool = new TasksPool(BALANCES_PROCESSING)
 const contractsProcessingPool = new TasksPool(CONTRACTS_PROCESSING)
 const eventsProcessingPool = new TasksPool(EVENTS_PROCESSING)
 const blocksTasksPool = new TasksPool(process.env.CATCHING_UP_MODE ? CATCHING_UP_BLOCKS_LISTNER : NEW_BLOCKS_LISTNER)
@@ -16,15 +24,17 @@ async function boot() {
   let [{
     AddressesRepository,
     BlocksReposiroty,
-    InterfacesRepository,
     TransactionsRepository
   }] = await Promise.all([
     repositories.connect(),
     blocksTasksPool.connect(),
     contractsProcessingPool.connect(),
-    eventsProcessingPool.connect()
+    eventsProcessingPool.connect(),
+    balancesProcessingPool.connect()
   ])
   blocksTasksPool.subscribe()
+
+  const calculateBalance = await balanceProcessing({ repositories: { AddressesRepository }, ethereum })
 
   setInterval(() => {
     global.gc && global.gc()
@@ -34,7 +44,7 @@ async function boot() {
     const { blockNumber } = JSON.parse(Buffer.from(msg.content).toString())
     log(`[${blockNumber}] Start processing block`)
     const [ isBlockExist ] = await BlocksReposiroty.find({ number: blockNumber.toString() }).limit(1).toArray()
-    if (!isBlockExist) {
+    if (blockNumber && !isBlockExist) {
       try {
         // Getting all block data
         log(`[${blockNumber}] Getting block data`)
@@ -47,8 +57,8 @@ async function boot() {
           // Decorate transactions
           for (let i = 0; i < transactions.length; i++) {
             const decoratedBeforeTransaction = await transactionBeforeSaveDecorator(transactions[i], AddressesRepository)
-            const decoratedAfterTransaction = await transactionAfterSaveDecorator(transactions[i], InterfacesRepository, AddressesRepository, true)
-            Object.assign(
+            const decoratedAfterTransaction = await transactionAfterSaveDecorator(transactions[i], AddressesRepository, calculateBalance)
+            transactions[i] = Object.assign(
               transactions[i],
               decoratedBeforeTransaction,
               decoratedAfterTransaction,
@@ -56,19 +66,7 @@ async function boot() {
                 addedAt: new Date(),
                 createdAt: block.timestamp
               })
-            // Transaction complete checking
-            transactions[i].isTransferComplete = (
-              transactions[i].method &&
-              ['transferFrom', 'transfer'].includes(transactions[i].method.name) &&
-              (
-                transactions[i].events.findIndex(event => (
-                    event.address.address === transactions[i].to.address &&
-                    event.name === 'Transfer' &&
-                    event.data.value === (transactions[i].method.name === 'transfer' ? transactions[i].method.arguments[1] : transactions[i].method.arguments[2])
-                  )
-                ) > -1
-              )
-            )
+
             // if no contract no need to do contract processing
             if (transactions[i].receipt && !transactions[i].receipt.contractAddress) {
               transactions[i].isContractProcessed = true
@@ -77,8 +75,7 @@ async function boot() {
             // add hash of transaction to block
             block.transactions.push(transactions[i].hash)
           }
-        }
-        if (transactions.length) {
+
           // Save last transactions
           await TransactionsRepository.update(transactions, ['hash'], true)
           // we can send transactions to processing only after save them
@@ -92,6 +89,14 @@ async function boot() {
                 createdAt: block.timestamp
               })
               txCounter++
+            }
+            // If transaction is success
+            if (+transactions[i].status) {
+              await calculateBalance({
+                from: transactions[i].from.address,
+                to: transactions[i].to.address,
+                amount: transactions[i].value
+              })
             }
           }
           log(`[${blockNumber}] Send ${txCounter} transactions to processing`)

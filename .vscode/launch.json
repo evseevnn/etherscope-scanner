@@ -7,13 +7,19 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Contract Analizer",
+      "name": "Launch Balance Processing",
+      "program": "${workspaceFolder}/ethereum/workers/balances/index.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Contract Processing",
       "program": "${workspaceFolder}/ethereum/workers/contracts/index.js"
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Worker",
+      "name": "Launch Block Processing",
       "program": "${workspaceFolder}/ethereum/workers/blocks/index.js"
     },
     {
