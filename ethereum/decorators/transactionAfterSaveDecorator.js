@@ -42,49 +42,46 @@ module.exports = async (transaction, AddressesRepository, onTransferCallback) =>
     decoratedTransaction.events = await transactionEventsDecorator(logs, AddressesRepository)
 
     // Decode method
-    if (decoratedTransaction.to && decoratedTransaction.to.type === 'contract') {
+    if (decoratedTransaction.to && decoratedTransaction.to.type === 'contract' && decoratedTransaction.to.data) {
       // Decorate Transfer operations
       try {
-        // need more checking
-        if (decoratedTransaction.to.data) {
-          const decimals = !isNaN(decoratedTransaction.to.data.decimals) ? decoratedTransaction.to.data.decimals : 1
-          decoratedTransaction.method = transactionInputDecorator(transaction, decoratedTransaction.to.abi)
+        const decimals = !isNaN(decoratedTransaction.to.data.decimals) ? decoratedTransaction.to.data.decimals : 1
+        decoratedTransaction.method = transactionInputDecorator(transaction, decoratedTransaction.to.abi)
 
-          // transfer
-          if (decoratedTransaction.method && decoratedTransaction.method.name === 'transfer' && decoratedTransaction.method.arguments[1]) {
-            decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
-            decoratedTransaction.method.arguments[1] = (decoratedTransaction.method.arguments[1] / (Math.pow(10, decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
-            // if transaction is success
-            if (+transaction.status) {
-              onTransferCallback && await onTransferCallback({
-                from: from.address,
-                to: decoratedTransaction.method.arguments[0],
-                amount: decoratedTransaction.method.arguments[1],
-                tokenAddress: decoratedTransaction.to
-              })
-            }
+        // transfer
+        if (decoratedTransaction.method && decoratedTransaction.method.name === 'transfer' && decoratedTransaction.method.arguments[1]) {
+          decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
+          decoratedTransaction.method.arguments[1] = (decoratedTransaction.method.arguments[1] / (Math.pow(10, decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+          // if transaction is success
+          if (+transaction.status) {
+            onTransferCallback && await onTransferCallback({
+              from: from.address,
+              to: decoratedTransaction.method.arguments[0],
+              amount: decoratedTransaction.method.arguments[1],
+              tokenAddress: decoratedTransaction.to.address
+            })
           }
+        }
 
-          // approve
-          if (decoratedTransaction.method && decoratedTransaction.method.name === 'approve' && decoratedTransaction.method.arguments[1]) {
-            decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
-            decoratedTransaction.method.arguments[1] = (decoratedTransaction.method.arguments[1] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
-          }
+        // approve
+        if (decoratedTransaction.method && decoratedTransaction.method.name === 'approve' && decoratedTransaction.method.arguments[1]) {
+          decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
+          decoratedTransaction.method.arguments[1] = (decoratedTransaction.method.arguments[1] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+        }
 
-          // transferFrom
-          if (decoratedTransaction.method && decoratedTransaction.method.name === 'transferFrom' && decoratedTransaction.method.arguments[2]) {
-            decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
-            decoratedTransaction.method.arguments[1] = await addressDecorator(decoratedTransaction.method.arguments[1], AddressesRepository)
-            decoratedTransaction.method.arguments[2] = (decoratedTransaction.method.arguments[2] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
-            // if transaction is success
-            if (+transaction.status) {
-              onTransferCallback && await onTransferCallback({
-                from: decoratedTransaction.method.arguments[0],
-                to: decoratedTransaction.method.arguments[1],
-                amount: decoratedTransaction.method.arguments[2],
-                tokenAddress: decoratedTransaction.to
-              })
-            }
+        // transferFrom
+        if (decoratedTransaction.method && decoratedTransaction.method.name === 'transferFrom' && decoratedTransaction.method.arguments[2]) {
+          decoratedTransaction.method.arguments[0] = await addressDecorator(decoratedTransaction.method.arguments[0], AddressesRepository)
+          decoratedTransaction.method.arguments[1] = await addressDecorator(decoratedTransaction.method.arguments[1], AddressesRepository)
+          decoratedTransaction.method.arguments[2] = (decoratedTransaction.method.arguments[2] / (Math.pow(10, decoratedTransaction.to.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
+          // if transaction is success
+          if (+transaction.status) {
+            onTransferCallback && await onTransferCallback({
+              from: decoratedTransaction.method.arguments[0],
+              to: decoratedTransaction.method.arguments[1],
+              amount: decoratedTransaction.method.arguments[2],
+              tokenAddress: decoratedTransaction.to
+            })
           }
         }
       } catch (error) {

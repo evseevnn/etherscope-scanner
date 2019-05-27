@@ -5,13 +5,13 @@ module.exports = async (address, AddressesRepository) => {
   }
 
   // By default all accounts has type 'address'
-  let returnData = { address, type: 'address', balance: 0, tokens: {} }
+  let returnData = { address, type: 'address', balance: 0, tokens: {}, incrementUpdateCounter: 0 }
 
   // trying find address in DB
   const [ addressData ] = await AddressesRepository.find({ address }, { code: false }).limit(1).toArray()
   if (addressData) {
     // Fill returnData
-    returnData = (({ address, abi, type, data, instanceOf, balance = 0, tokens = {} }) => ({ address, abi, type, data, instanceOf, balance, tokens }))(addressData)
+    returnData = (({ address, abi, type, data, instanceOf, balance = 0, tokens = {}, incrementUpdateCounter = 0 }) => ({ address, abi, type, data, instanceOf, balance, tokens, incrementUpdateCounter }))(addressData)
   }
 
   // If account it's not contract, no need save data and instanceOf info
@@ -19,6 +19,8 @@ module.exports = async (address, AddressesRepository) => {
     delete returnData.abi
     delete returnData.data
     delete returnData.instanceOf
+  } else {
+    console.log('contract')
   }
 
   return returnData
