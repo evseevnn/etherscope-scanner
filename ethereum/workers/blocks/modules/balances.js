@@ -32,22 +32,30 @@ module.exports = function ({ repositories, ethereum }) {
         // If it's update for token
         if (tokenAddress) {
           // Update token balance
-          const contractData = AddressesRepository.find({ address: tokenAddress })
+          const [ contractData ] = await AddressesRepository.find({ address: tokenAddress }).toArray()
           if (accountObject.incrementUpdateCounter % MAX_INCREMENTS_BEFORE_UPDATE) {
-            const contract = ethereum.getContract(tokenAddress, contractData.instanceOf)
-            const balance = await contract.instance.balanceOf(accountObject.address).call()
-            accountObject.tokens[tokenAddress] = {
-              address: tokenAddress,
-              data: contractData.data,
-              value: balance.toString(),
-              updatedAt: new Date()
+            const contract = await ethereum.getContract(tokenAddress, contractData.abi)
+            if (contract.instance['balanceOf']) {
+              const balance = await contract.instance['balanceOf'].call({}, [accountObject.address])
+              accountObject.tokens[tokenAddress] = {
+                address: tokenAddress,
+                data: contractData.data,
+                value: balance.toString(10),
+                updatedAt: new Date()
+              }
             }
           } else {
             // i === 0 - from
             // i > 0 - to
             const amountForIncrement = +(i === 0 ? -amount : amount)
+
             // Should be update by increment operation
-            accountObject[tokenAddress].balance = bigNumber(+accountObject[tokenAddress].value || 0).plus(amountForIncrement).toNumber()
+            accountObject.tokens[tokenAddress] = {
+              address: tokenAddress,
+              data: contractData.data,
+              value: bigNumber(+(accountObject.tokens[tokenAddress] && accountObject.tokens[tokenAddress].value) || 0).plus(amountForIncrement).toString(),
+              updatedAt: new Date()
+            }
           }
         } else {
           // If address in Db
@@ -60,7 +68,7 @@ module.exports = function ({ repositories, ethereum }) {
             // i > 0 - to
             const amountForIncrement = +(i === 0 ? -amount : amount)
             // Should be update by increment operation
-            accountObject.balance = bigNumber(+accountObject.balance).plus(amountForIncrement).toNumber()
+            accountObject.balance = bigNumber(+accountObject.balance).plus(amountForIncrement).toString()
           }
         }
 

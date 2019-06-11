@@ -11,9 +11,18 @@ module.exports = (transaction, abi) => {
   }
   const methodHash = transaction.input.substring(0, 10)
   const methodData = methodsEntities.find(method => method._hash === methodHash)
+
+  // if unknown method
+  if (!methodData) {
+    return undefined
+  }
+
   const methodArgumentsData = transaction.input.substring(10)
-  const params = methodData.inputs.map(input => input.type)
-  const args = Object.assign({}, AbiCoder().decodeParameters(params, '0x' + methodArgumentsData))
+  let args = {}
+  if (methodData.inputs && methodData.inputs.length) {
+    const params = methodData.inputs.map(input => input.type)
+    args = Object.assign({}, AbiCoder().decodeParameters(params, '0x' + methodArgumentsData))
+  }
 
   return {
     name: methodData.name,

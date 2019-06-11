@@ -3,8 +3,6 @@ const log = require('debug')('ethereum:listners:transactions-processing')
 const TasksPool = require('../../../TasksPool')
 const { CONTRACTS_PROCESSING } = require('..')
 const contractsProcessing = require('./modules/contractsProcessing')
-const transactionAfterSaveDecorator = require('../../decorators/transactionAfterSaveDecorator')
-
 const repositories = require('../../../db/repositories')
 const contractsProcessingPool = new TasksPool(CONTRACTS_PROCESSING)
 
@@ -14,7 +12,6 @@ Promise.all([
 ])
   .then(([{
     AddressesRepository,
-    InterfacesRepository,
     TransactionsRepository
   }]) => {
     contractsProcessingPool.subscribe()
@@ -33,21 +30,23 @@ Promise.all([
             contractAddresses.add(transaction.receipt.contractAddress)
           }
           // from
-          if (typeof transaction.from === 'object' && transaction.from.address) {
-            // We'll do it only if sure
-            if (transaction.from.type === 'contract') {
-              contractAddresses.add(transaction.from.address)
-            }
-          } else {
+          if (
+            typeof transaction.from === 'object' &&
+            transaction.from.address &&
+            transaction.from.type === 'contract'
+          ) {
+            contractAddresses.add(transaction.from.address)
+          } else if (typeof transaction.from === 'string') {
             contractAddresses.add(transaction.from)
           }
           // to
-          if (typeof transaction.to === 'object' && transaction.to.address) {
-            // We'll do it only if sure
-            if (transaction.to.type === 'contract') {
-              contractAddresses.add(transaction.to.address)
-            }
-          } else {
+          if (
+            typeof transaction.to === 'object' &&
+            transaction.to.address &&
+            transaction.to.type === 'contract'
+          ) {
+            contractAddresses.add(transaction.to.address)
+          } else if (typeof transaction.to === 'string') {
             contractAddresses.add(transaction.to)
           }
           // logs addresses
@@ -55,21 +54,12 @@ Promise.all([
             contractAddresses.add(log.address)
           })
 
-          const processedAddresses = await contractsProcessing({
+          await contractsProcessing({
             addresses: Array.from(contractAddresses),
             blockNumber,
             createdAt,
             AddressesRepository
           })
-
-          let decoratedTransaction = {}
-          if (processedAddresses.length) {
-            // re-decorate transaction
-            decoratedTransaction = await transactionAfterSaveDecorator(transaction, InterfacesRepository, AddressesRepository)
-          }
-          transaction = Object.assign(transaction, decoratedTransaction, { isContractProcessed: true })
-          // Save last transactions
-          await TransactionsRepository.update(transaction, ['hash'])
 
           log(`[${hash}] Done`)
         } else {

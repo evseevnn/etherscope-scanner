@@ -10,8 +10,7 @@ const {
 } = require('..')
 const Ethereum = require('../..')
 const ethereum = new Ethereum(process.env.ETHEREUM_NODE_HTTP)
-const transactionBeforeSaveDecorator = require('../../decorators/transactionBeforeSaveDecorator')
-const transactionAfterSaveDecorator = require('../../decorators/transactionAfterSaveDecorator')
+const transactionDecorator = require('../../decorators/transactionDecorator')
 const repositories = require('../../../db/repositories')
 const balanceProcessing = require('./modules/balances')
 
@@ -36,14 +35,10 @@ async function boot() {
 
   const calculateBalance = await balanceProcessing({ repositories: { AddressesRepository }, ethereum })
 
-  setInterval(() => {
-    global.gc && global.gc()
-  }, 1000)
-
   blocksTasksPool.on('data', async (msg) => {
     const { blockNumber } = JSON.parse(Buffer.from(msg.content).toString())
     log(`[${blockNumber}] Start processing block`)
-    const [ isBlockExist ] = await BlocksReposiroty.find({ number: blockNumber.toString() }).limit(1).toArray()
+    const [ isBlockExist ] = await BlocksReposiroty.find({ number: blockNumber.toString(10) }).limit(1).toArray()
     if (blockNumber && !isBlockExist) {
       try {
         // Getting all block data
@@ -56,24 +51,14 @@ async function boot() {
         if (transactions.length) {
           // Decorate transactions
           for (let i = 0; i < transactions.length; i++) {
-            const decoratedBeforeTransaction = await transactionBeforeSaveDecorator(transactions[i], AddressesRepository)
-            const decoratedAfterTransaction = await transactionAfterSaveDecorator(transactions[i], AddressesRepository, calculateBalance)
-            transactions[i] = Object.assign(
-              transactions[i],
-              decoratedBeforeTransaction,
-              decoratedAfterTransaction,
-              {
-                addedAt: new Date(),
-                createdAt: block.timestamp
-              })
-
-            // if no contract no need to do contract processing
-            if (transactions[i].receipt && !transactions[i].receipt.contractAddress) {
-              transactions[i].isContractProcessed = true
-            }
+            let transaction = transactions[i]
+            const decoratedTransaction = await transactionDecorator(transaction, AddressesRepository, calculateBalance)
+            decoratedTransaction.addedAt = new Date()
+            decoratedTransaction.createdAt = block.timestamp
 
             // add hash of transaction to block
-            block.transactions.push(transactions[i].hash)
+            block.transactions.push(transaction.hash)
+            transactions[i] = decoratedTransaction
           }
 
           // Save last transactions
@@ -89,14 +74,6 @@ async function boot() {
                 createdAt: block.timestamp
               })
               txCounter++
-            }
-            // If transaction is success
-            if (+transactions[i].status) {
-              await calculateBalance({
-                from: transactions[i].from.address,
-                to: transactions[i].to.address,
-                amount: transactions[i].value
-              })
             }
           }
           log(`[${blockNumber}] Send ${txCounter} transactions to processing`)
