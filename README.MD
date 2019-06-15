@@ -18,7 +18,6 @@ db.getCollection('addresses').createIndex({address: 1}, {unique : true, backgrou
 db.getCollection('addresses').createIndex({instanceOf: 1}, {background: true})
 db.getCollection('addresses').createIndex({ 'data.name': 'text' }, {background: true})
 db.getCollection('addresses').createIndex({ address: 1, updatedAt: -1 }, {background: true})
-db.getCollection('blocks').createIndex({transactions: 1}, {background: true})
 db.getCollection('blocks').createIndex({number: -1}, {unique: 1, background: true})
 db.getCollection('blocks').createIndex({miner: 1}, {background: true})
 db.getCollection('blocks').createIndex({author: 1}, {background: true})
@@ -62,3 +61,18 @@ screen -L parity\
   --ipc-path /ethereum/parity.ipc\
   --unsafe-expose
 ```
+
+
+На сервере где находится Parity надо запустить воркер который будет просто брать и класть задачи в рабит
+1
+ Parity
+
+2
+ RabbitMQ
+ Worker for add to rabbitMQ
+ Worker Blocks
+ Worker Contracts
+
+3
+ MongoDB
+ GQL

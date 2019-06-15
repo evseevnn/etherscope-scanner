@@ -84,10 +84,9 @@ module.exports = function ({ repositories, ethereum }) {
 
       // Update addresses data
       await AddressesRepository.update(addressesForReq, ['address'], true)
-      return true
     } catch (error) {
       log(`Balance pocessing error`, error)
-      process.exit()
     }
+    return true
   }
 }
