@@ -11,14 +11,14 @@ module.exports = async (transaction, AddressesRepository, calculateBalance) => {
     const to = await addressDecorator(transaction.to || (transaction.receipt && transaction.receipt.contractAddress), AddressesRepository)
     decoratedTransaction = {
       hash: transaction.hash,
-      blockNumber: utils.toBN(transaction.blockNumber).toString(10),
-      transactionIndex: utils.toBN(transaction.transactionIndex).toString(10),
-      status: transaction.receipt && transaction.receipt.status && utils.toBN(transaction.receipt.status).toString(10),
+      blockNumber: utils.toBN(transaction.blockNumber).toNumber(),
+      transactionIndex: utils.toBN(transaction.transactionIndex).toNumber(),
+      status: transaction.receipt && transaction.receipt.status && utils.toBN(transaction.receipt.status).toNumber(),
       from,
       to,
-      gas: utils.toBN(transaction.gas).toString(10),
-      gasPrice: utils.toBN(transaction.gasPrice).toString(10),
-      value: utils.toBN(transaction.value).toString(10),
+      gas: utils.toBN(transaction.gas).toNumber(),
+      gasPrice: utils.toBN(transaction.gasPrice).toNumber(),
+      value: utils.toBN(transaction.value).toNumber(),
       method: null,
       events: [],
       receipt: transaction.receipt
@@ -40,11 +40,11 @@ module.exports = async (transaction, AddressesRepository, calculateBalance) => {
       }
 
       if (transaction.receipt.gasUsed) {
-        decoratedTransaction.fee = utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(decoratedTransaction.gasPrice)).toString(10)
+        decoratedTransaction.fee = utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(decoratedTransaction.gasPrice)).toNumber()
       }
 
       if (transaction.receipt.cumulativeGasUsed) {
-        decoratedTransaction.cumulativeGasUsed = utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(transaction.receipt.cumulativeGasUsed)).toString(10)
+        decoratedTransaction.cumulativeGasUsed = utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(transaction.receipt.cumulativeGasUsed)).toNumber()
       }
 
       // If transaction has logs that mean what reciver is unknown contract

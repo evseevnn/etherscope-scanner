@@ -46,6 +46,7 @@ async function boot() {
         let { block, transactions } = await ethereum.getBlockData(blockNumber)
         log(`[${blockNumber}] Prepare and save`)
 
+        block.number = parseInt(block.number)
         block.transactions = []
 
         if (transactions.length) {
