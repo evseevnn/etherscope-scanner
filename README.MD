@@ -18,6 +18,7 @@ db.getCollection('addresses').createIndex({address: 1}, {unique : true, backgrou
 db.getCollection('addresses').createIndex({instanceOf: 1}, {background: true})
 db.getCollection('addresses').createIndex({ 'data.name': 'text' }, {background: true})
 db.getCollection('addresses').createIndex({ address: 1, updatedAt: -1 }, {background: true})
+db.getCollection('addresses').createIndex({incrementUpdateCounter: -1}, { background: true })
 db.getCollection('blocks').createIndex({number: -1}, {unique: 1, background: true})
 db.getCollection('blocks').createIndex({miner: 1}, {background: true})
 db.getCollection('blocks').createIndex({author: 1}, {background: true})
@@ -29,9 +30,8 @@ db.getCollection('transactions').createIndex({'events.data.from.address': 1}, {b
 db.getCollection('transactions').createIndex({'events.data.to.address': 1}, {background: true})
 db.getCollection('transactions').createIndex({hash: 1}, {unique: 1, background: true})
 db.getCollection('transactions').createIndex({blockNumber: -1}, {background: true})
-db.getCollection('transactions').createIndex({blockNumber: -1, transactionIndex: -1}, {background: true})
-db.getCollection('transactions').createIndex({createdAt: -1}, {background: true, expireAfterSeconds: 2678400, partialFilterExpression: { isContractProcessed: true, 'receipt.contractAddress': null }})
-db.getCollection('transactions').createIndex({addedAt: -1}, {background: true, expireAfterSeconds: 10800, partialFilterExpression: { cache: true, 'receipt.contractAddress': null }})
+db.getCollection('transactions').createIndex({createdAt: -1}, { background: true })
+db.getCollection('transactions').createIndex({addedAt: -1}, { background: true })
 db.getCollection('transactions').createIndex({isContractProcessed: 1}, {background: true})
 ```
 

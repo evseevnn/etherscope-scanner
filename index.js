@@ -25,7 +25,8 @@ blocksPool
     }
 
     // Start tracing new blocks
-    ethereum.subscribeOnNewBlocks(-1)
+    const startFrom = process.env.START_FROM || -1
+    ethereum.subscribeOnNewBlocks(startFrom)
     ethereum
       .on('blocks', async ({ from, to }) => {
         for (; from <= to; from++) {
