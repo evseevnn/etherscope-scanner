@@ -38,8 +38,8 @@ async function boot() {
   blocksTasksPool.on('data', async (msg) => {
     const { blockNumber } = JSON.parse(Buffer.from(msg.content).toString())
     log(`[${blockNumber}] Start processing block`)
-    const [ isBlockExist ] = await BlocksReposiroty.find({ number: blockNumber.toString(10) }).limit(1).toArray()
-    if (blockNumber && !isBlockExist) {
+    const [ isBlockExist ] = await BlocksReposiroty.find({ number: blockNumber }).limit(1).toArray()
+    if (!isBlockExist) {
       try {
         // Getting all block data
         log(`[${blockNumber}] Getting block data`)
