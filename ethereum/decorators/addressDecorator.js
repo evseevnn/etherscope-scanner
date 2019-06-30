@@ -1,6 +1,6 @@
 const utils = require('web3-utils')
 
-module.exports = async (address, AddressesRepository) => {
+module.exports = async (address, AddressesRepository, lite = false) => {
   // Fix address checksum
   address = utils.toChecksumAddress(address)
   // if decorated need do it again
@@ -23,6 +23,13 @@ module.exports = async (address, AddressesRepository) => {
     delete returnData.abi
     delete returnData.data
     delete returnData.instanceOf
+  }
+
+  if (lite) {
+    delete returnData.incrementUpdateCounter
+    delete returnData.tokens
+    delete returnData.balance
+    delete returnData.abi
   }
 
   return returnData

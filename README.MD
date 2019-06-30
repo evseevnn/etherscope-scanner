@@ -28,15 +28,17 @@ db.getCollection('transactions').createIndex({'events.address.address': 1}, {bac
 db.getCollection('transactions').createIndex({'events.name': 1}, {background: true})
 db.getCollection('transactions').createIndex({'events.data.from.address': 1}, {background: true})
 db.getCollection('transactions').createIndex({'events.data.to.address': 1}, {background: true})
+db.getCollection('transactions').createIndex({'addresses': 1}, {background: true})
 db.getCollection('transactions').createIndex({hash: 1}, {unique: 1, background: true})
 db.getCollection('transactions').createIndex({blockNumber: -1}, {background: true})
+db.getCollection('transactions').createIndex({blockNumber: -1, transactionIndex: -1}, {background: true})
 db.getCollection('transactions').createIndex({createdAt: -1}, { background: true })
 db.getCollection('transactions').createIndex({addedAt: -1}, { background: true })
 db.getCollection('transactions').createIndex({isContractProcessed: 1}, {background: true})
 ```
 
 # Parity
-
+ 
 ```
 sudo mkdir /ethereum
 

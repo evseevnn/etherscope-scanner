@@ -54,7 +54,7 @@ module.exports = async (logs, AddressesRepository) => {
 
           decoratedEvents.push({
             index: log.logIndex,
-            address,
+            address: (({ address, type, data, instanceOf }) => ({ address, type, data, instanceOf }))(address),
             name: events[eventHash].name,
             code: events[eventHash]._signature,
             data: clearEventData
