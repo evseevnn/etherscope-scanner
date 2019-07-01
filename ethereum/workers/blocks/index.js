@@ -39,7 +39,7 @@ async function boot() {
     const { blockNumber } = JSON.parse(Buffer.from(msg.content).toString())
     log(`[${blockNumber}] Start processing block`)
     const [ isBlockExist ] = await BlocksReposiroty.find({ number: blockNumber }).limit(1).toArray()
-    if (!isBlockExist) {
+    if (blockNumber > 0 && !isBlockExist) {
       try {
         // Getting all block data
         log(`[${blockNumber}] Getting block data`)
