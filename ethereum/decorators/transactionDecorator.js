@@ -27,9 +27,9 @@ module.exports = async (transaction, AddressesRepository, calculateBalance) => {
     addresses: [],
     from: (({ address, type, data, instanceOf }) => ({ address, type, data, instanceOf }))(from),
     to: (({ address, type, data, instanceOf }) => ({ address, type, data, instanceOf }))(to),
-    gas: utils.toBN(transaction.gas).toNumber(),
-    gasPrice: utils.toBN(transaction.gasPrice).toNumber(),
-    value: utils.toBN(transaction.value).toNumber(),
+    gas: utils.toBN(transaction.gas).toString(),
+    gasPrice: utils.toBN(transaction.gasPrice).toString(),
+    value: utils.toBN(transaction.value).toString(),
     method: null,
     events: [],
     receipt: transaction.receipt
@@ -51,11 +51,11 @@ module.exports = async (transaction, AddressesRepository, calculateBalance) => {
     }
 
     if (transaction.receipt.gasUsed) {
-      decoratedTransaction.fee = utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(decoratedTransaction.gasPrice)).toNumber()
+      decoratedTransaction.fee = utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(decoratedTransaction.gasPrice)).toString()
     }
 
     if (transaction.receipt.cumulativeGasUsed) {
-      decoratedTransaction.cumulativeGasUsed = utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(transaction.receipt.cumulativeGasUsed)).toNumber()
+      decoratedTransaction.cumulativeGasUsed = utils.toBN(transaction.receipt.gasUsed).mul(utils.toBN(transaction.receipt.cumulativeGasUsed)).toString()
     }
 
     // If transaction has logs that mean what reciver is unknown contract
