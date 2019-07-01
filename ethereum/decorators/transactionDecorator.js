@@ -71,10 +71,8 @@ module.exports = async (transaction, AddressesRepository, calculateBalance) => {
       }
     }
 
-    let logs = []
-
     // Decorate events
-    decoratedTransaction.events = await transactionEventsDecorator(logs, AddressesRepository)
+    decoratedTransaction.events = await transactionEventsDecorator(transaction.receipt.logs, AddressesRepository)
 
     for (let e = 0; e < decoratedTransaction.events.length; e++) {
       const event = decoratedTransaction.events[e]
