@@ -5,7 +5,7 @@ module.exports = {
       script: './index.js',
       instances: 1,
       exec_mode: 'fork',
-      autorestart: true,
+      autorestart: false,
       args: '--expose-gc'
     },
     {
