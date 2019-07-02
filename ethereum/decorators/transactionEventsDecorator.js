@@ -37,7 +37,7 @@ module.exports = async (logs, AddressesRepository) => {
           const fields = Object.keys(clearEventData)
           for (let i = 0; i < fields.length; i++) {
             if (isAddress.test(clearEventData[fields[i]])) {
-              clearEventData[fields[i]] = await addressDecorator(clearEventData[fields[i]], AddressesRepository)
+              clearEventData[fields[i]] = await addressDecorator(clearEventData[fields[i]], AddressesRepository, true)
             }
           }
 
