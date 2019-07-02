@@ -16,8 +16,8 @@ module.exports = async (transaction, AddressesRepository, calculateBalance) => {
   const from = await addressDecorator(transaction.from, AddressesRepository)
   const to = await addressDecorator(transaction.to || (transaction.receipt && transaction.receipt.contractAddress), AddressesRepository)
 
-  addresses.add(transaction.from)
-  addresses.add(transaction.to)
+  addresses.add(from.address)
+  addresses.add(to.address)
 
   decoratedTransaction = {
     hash: transaction.hash,
@@ -65,7 +65,6 @@ module.exports = async (transaction, AddressesRepository, calculateBalance) => {
 
     // if contract just created set method
     if (transaction.receipt.contractAddress) {
-      addresses.add(transaction.receipt.contractAddress)
       decoratedTransaction.to.type = 'contract'
       decoratedTransaction.method = {
         name: 'constructor'
