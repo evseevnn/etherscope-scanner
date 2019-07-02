@@ -65,6 +65,7 @@ module.exports = async (transaction, AddressesRepository, calculateBalance) => {
 
     // if contract just created set method
     if (transaction.receipt.contractAddress) {
+      addresses.add(transaction.receipt.contractAddress)
       decoratedTransaction.to.type = 'contract'
       decoratedTransaction.method = {
         name: 'constructor'
