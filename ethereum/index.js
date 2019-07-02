@@ -3,26 +3,7 @@ const Parity = require('@parity/api')
 const url = require('url')
 const EventEmitter = require('events')
 
-const contractsInterfaces = require('./interfaces')
-const contractsFuncHashes = {}
-const contractsHashAbi = {}
-Object.keys(contractsInterfaces).forEach(interfaceName => {
-  const abiEntities = contractsInterfaces[interfaceName].abi
-  const hashes = []
-  abiEntities.forEach(abiEntity => {
-    const hash = abiEntity._hash.substring(2)
-    contractsHashAbi[hash] = abiEntity
-    if (
-      abiEntity.name &&
-      abiEntity.type === 'function'
-    ) {
-      hashes.push(hash)
-    }
-  })
-  if (hashes.length) {
-    contractsFuncHashes[interfaceName] = hashes
-  }
-})
+const { interfacesFunctions, abi: contractsHashAbi } = require('./interfaces')
 
 class Ethereum extends EventEmitter {
   /**
@@ -147,8 +128,8 @@ class Ethereum extends EventEmitter {
       .map(hash => contractsHashAbi[hash])
 
     // Check types
-    const instanceOf = Object.keys(contractsFuncHashes).filter(interfaceName => {
-      return contractsFuncHashes[interfaceName].every(hash => {
+    const instanceOf = Object.keys(interfacesFunctions).filter(interfaceName => {
+      return interfacesFunctions[interfaceName].every(hash => {
         return new RegExp(hash).test(code)
       })
     })

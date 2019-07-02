@@ -4,6 +4,8 @@ const logger = require('debug')('decorators:transaction-events-decorator')
 const addressDecorator = require('./addressDecorator')
 const isAddress = new RegExp('^0x[a-f0-9]{40}$', 'i')
 
+const { events } = require('../interfaces')
+
 module.exports = async (logs, AddressesRepository) => {
   const decoratedEvents = []
   for (let i = 0; i < logs.length; i++) {
@@ -11,22 +13,9 @@ module.exports = async (logs, AddressesRepository) => {
 
     // decorate log addresses
     const address = await addressDecorator(log.address, AddressesRepository)
-    if (
-      address.type === 'contract' &&
-      address.abi &&
-      Array.isArray(address.abi) &&
-      address.abi.length
-    ) {
-      // Prepare contracts data
-      const abi = address.abi
-      const events = {}
-      const eventsEntities = abi.filter(entity => entity.type === 'event')
-      eventsEntities.forEach(event => {
-        events[event._hash] = event
-      })
-
-      const eventHash = log.topics && log.topics[0]
-      const event = events[eventHash]
+    if (address.type === 'contract') {
+      const eventHash = log.topics && log.topics[0] // Take event hash
+      const event = events[eventHash.substring(2)]
       if (event && log.data !== '0x') {
         try {
           // Checking abi input
@@ -41,7 +30,7 @@ module.exports = async (logs, AddressesRepository) => {
           }
           const data = Object.assign({}, AbiCoder().decodeLog(eventsInputs, log.data, topicsData))
           const clearEventData = cleanWeb4DecodedFields(data, true)
-          if (['Transfer', 'Approval'].includes(events[eventHash].name) && clearEventData && clearEventData.value) {
+          if (['Transfer', 'Approval'].includes(event.name) && clearEventData && clearEventData.value) {
             clearEventData.value = (clearEventData.value / (Math.pow(10, address.data.decimals) || 1)).toFixed(8).replace(/\.?0+$/, '')
           }
 
@@ -55,8 +44,8 @@ module.exports = async (logs, AddressesRepository) => {
           decoratedEvents.push({
             index: log.logIndex,
             address: (({ address, type, data, instanceOf }) => ({ address, type, data, instanceOf }))(address),
-            name: events[eventHash].name,
-            code: events[eventHash]._signature,
+            name: event.name,
+            code: event._signature,
             data: clearEventData
           })
           // logger(`Event ${events[eventHash].name}`)
