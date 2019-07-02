@@ -125,7 +125,7 @@ module.exports = async (transaction, AddressesRepository, calculateBalance) => {
     }
   }
 
-  decoratedTransaction.addresses = Array.from(addresses)
+  decoratedTransaction.addresses = Array.from(addresses).filter(address => address.length)
 
   return decoratedTransaction
 }
