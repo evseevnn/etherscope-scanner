@@ -21,14 +21,7 @@ module.exports = async (logs, AddressesRepository) => {
           try {
             // Checking abi input
             let eventsInputs = event.inputs
-            const indexedInput = eventsInputs.filter(input => input.indexed)
             const topicsData = log.topics.slice(1)
-            if (indexedInput.length > topicsData.length) {
-              eventsInputs = eventsInputs.map(input => {
-                input.indexed = false
-                return input
-              })
-            }
             const data = Object.assign({}, AbiCoder().decodeLog(eventsInputs, log.data, topicsData))
             const clearEventData = cleanWeb4DecodedFields(data, true)
             if (['Transfer', 'Approval'].includes(event.name) && clearEventData && clearEventData.value) {
